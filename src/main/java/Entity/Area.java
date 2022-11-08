@@ -13,7 +13,6 @@ import java.util.UUID;
 public class Area {
 
     protected int id;
-
     protected UUID owner;
     protected Player ownerPlayer;
     protected World world;
@@ -31,9 +30,10 @@ public class Area {
         this.world = ownerPlayer.getWorld();
     }
 
-    public Area(int id, String world, Location firstLocation, Location secondLocation)
+    public Area(int id, String owner, String world, Location firstLocation, Location secondLocation)
     {
         this.id = id;
+        this.owner = UUID.fromString(owner);
         this.world = Bukkit.getWorld(world);
         this.firstLocation = firstLocation;
         this.secondLocation = secondLocation;
@@ -46,6 +46,7 @@ public class Area {
     }
     public void showArea()
     {
+        ownerPlayer = ownerPlayer == null ? Bukkit.getPlayer(owner) : ownerPlayer;
         Bukkit.getScheduler().runTaskLater(SPLand.getInstance(), ()->{
             ownerPlayer.sendBlockChange(new Location(world, firstLocation.getX(), firstLocation.getY(), firstLocation.getZ()), Material.OCHRE_FROGLIGHT.createBlockData());
             ownerPlayer.sendBlockChange(new Location(world, secondLocation.getX(), secondLocation.getY(), secondLocation.getZ()), Material.OCHRE_FROGLIGHT.createBlockData());
@@ -55,6 +56,7 @@ public class Area {
     }
     public void hideArea()
     {
+        ownerPlayer = ownerPlayer == null ? Bukkit.getPlayer(owner) : ownerPlayer;
         ownerPlayer.sendBlockChange(new Location(world, firstLocation.getX(), firstLocation.getY(), firstLocation.getZ()), firstLocation.getBlock().getBlockData());
         ownerPlayer.sendBlockChange(new Location(world, secondLocation.getX(), secondLocation.getY(), secondLocation.getZ()), secondLocation.getBlock().getBlockData());
         ownerPlayer.sendBlockChange(new Location(world, thirdLocation.getX(), thirdLocation.getY(), thirdLocation.getZ()), thirdLocation.getBlock().getBlockData());
@@ -86,10 +88,8 @@ public class Area {
         return gson.toJson(locationParser);
     }
 
-    public Location locationToObject(String location)
-    {
-        Gson gson = new Gson();
-        return gson.fromJson(location, Location.class);
+    public int getId() {
+        return id;
     }
 
     public UUID getOwner() {

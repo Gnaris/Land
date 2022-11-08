@@ -15,11 +15,19 @@ public class Land extends Area implements Runnable{
     private final Map<UUID, PlayerLand> playerList = new HashMap<>();
     private int schedulerID = 0;
     private boolean confirmed = false;
-    private boolean openSomething = false;
+    private boolean publicInteract = false;
 
     public Land(UUID uuid)
     {
         super(uuid);
+    }
+
+    public Land(int id, String owner, String name, String world, Location firstLocation, Location secondLocation, boolean confirmed, boolean publicInteract)
+    {
+        super(id, owner, world, firstLocation, secondLocation);
+        this.name = name;
+        this.confirmed = confirmed;
+        this.publicInteract = publicInteract;
     }
 
     @Override
@@ -43,6 +51,7 @@ public class Land extends Area implements Runnable{
     {
         confirmed = true;
         this.name = name;
+        this.id = SPLand.getInstance().getLandStore().getLandList().size();
     }
 
     public void cancelLand()
@@ -67,11 +76,11 @@ public class Land extends Area implements Runnable{
     public String getName() {
         return name;
     }
-    public boolean canOpenSomething() {
-        return openSomething;
+    public boolean isPublicInteract() {
+        return publicInteract;
     }
-    public void setOpenSomething(boolean openSomething) {
-        this.openSomething = openSomething;
+    public void setPublicInteract(boolean publicInteract) {
+        this.publicInteract = publicInteract;
     }
     public Map<UUID, PlayerLand> getPlayerList() {
         return playerList;

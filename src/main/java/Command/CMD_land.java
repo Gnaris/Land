@@ -7,7 +7,6 @@ import Entity.PlayerLand;
 import Entity.Wallet;
 import LandStore.LandStore;
 import LandStore.PlayerStore;
-import Model.Thread.insertNewLandThread;
 import SPLand.SPLand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -16,7 +15,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class CMD_land implements CommandExecutor {
     @Override
@@ -27,6 +25,7 @@ public class CMD_land implements CommandExecutor {
 
             LandStore landStore = SPLand.getInstance().getLandStore();
             PlayerStore playerStore = SPLand.getInstance().getPlayerStore();
+            Wallet playerWallet = SPLand.getWalletStore().getWalletList().get(player.getUniqueId());
             LandController landController = new LandController(player);
 
 
@@ -45,7 +44,7 @@ public class CMD_land implements CommandExecutor {
 
                 if(args[0].equalsIgnoreCase("list"))
                 {
-                    return landController.canShowPlayerList();
+                    return landController.canShowPlayerLandList();
                 }
             }
 
@@ -77,7 +76,6 @@ public class CMD_land implements CommandExecutor {
                         player.sendMessage("§c" + args[1] + " n'est pas un montant valide");
                         return false;
                     }
-                    Wallet playerWallet = SPLand.getWalletStore().getWalletList().get(player.getUniqueId());
                     PlayerClaim playerClaim = playerStore.getPlayerList().get(player.getUniqueId());
                     if(!landController.canBuyClaimBlock(playerWallet, amount)) return false;
                     playerWallet.remove(amount * PlayerClaim.getPrice());
@@ -95,7 +93,6 @@ public class CMD_land implements CommandExecutor {
                         player.sendMessage("§c" + args[1] + " n'est pas un montant valide");
                         return false;
                     }
-                    Wallet playerWallet = SPLand.getWalletStore().getWalletList().get(player.getUniqueId());
                     PlayerClaim playerClaim = playerStore.getPlayerList().get(player.getUniqueId());
                     if(!landController.canSellClaimBlock(amount)) return false;
                     playerWallet.add(amount * PlayerClaim.getPrice());
@@ -137,7 +134,7 @@ public class CMD_land implements CommandExecutor {
                 {
                     if(!landController.canInvitePlayerOnClaim(Bukkit.getPlayer(args[1]), args[2])) return false;
                     Land playerLand = SPLand.getInstance().getLandStore().getPlayerLandByName(player, args[2]);
-                    playerLand.getPlayerList().put(Objects.requireNonNull(Bukkit.getPlayer(args[1])).getUniqueId(), new PlayerLand(Bukkit.getPlayer(args[1]), true,  true, true));
+                    playerLand.getPlayerList().put(Objects.requireNonNull(Bukkit.getPlayer(args[1])).getUniqueId(), new PlayerLand(playerLand.getId(), Bukkit.getPlayer(args[1]).getUniqueId().toString(), false,  false, false));
                     return true;
                 }
 
@@ -149,17 +146,17 @@ public class CMD_land implements CommandExecutor {
                     return true;
                 }
 
-                if(args[0].equalsIgnoreCase("setopen"))
+                if(args[0].equalsIgnoreCase("setpublicinteract"))
                 {
-                    if(!landController.canSetOpen(args[1], args[2])) return false;
+                    if(!landController.canSetPublicInteract(args[1], args[2])) return false;
                     Land playerLand = landStore.getPlayerLandByName(player, args[1]);
                     if(args[2].equalsIgnoreCase("on"))
                     {
-                        playerLand.setOpenSomething(true);
+                        playerLand.setPublicInteract(true);
                     }
                     if(args[2].equalsIgnoreCase("off"))
                     {
-                        playerLand.setOpenSomething(false);
+                        playerLand.setPublicInteract(false);
                     }
                     return true;
                 }

@@ -1,31 +1,36 @@
 package Entity;
 
-import org.bukkit.entity.Player;
+import java.util.UUID;
 
 public class PlayerLand {
 
-    private final Player player;
+    private final int landID;
+    private final UUID player;
     private boolean build;
-    private boolean open;
+    private boolean interact;
     private boolean killAnimals;
 
-    public PlayerLand(Player player, boolean build, boolean open, boolean killAnimals) {
-        this.player = player;
+    public PlayerLand(int landID, String player, boolean build, boolean interact, boolean killAnimals) {
+        this.landID = landID;
+        this.player = UUID.fromString(player);
         this.build = build;
-        this.open = open;
+        this.interact = interact;
         this.killAnimals = killAnimals;
     }
 
-    public Player getPlayer() {
+    public int getLandID() {
+        return landID;
+    }
+    public UUID getPlayer() {
         return player;
     }
     public boolean canBuild()
     {
         return build;
     }
-    public boolean canOpen()
+    public boolean canInteract()
     {
-        return open;
+        return interact;
     }
     public boolean canKillAnimals()
     {
@@ -34,8 +39,8 @@ public class PlayerLand {
     public void setBuild(boolean build) {
         this.build = build;
     }
-    public void setOpen(boolean open) {
-        this.open = open;
+    public void setInteract(boolean interact) {
+        this.interact = interact;
     }
     public void setKillAnimals(boolean killAnimals) {
         this.killAnimals = killAnimals;

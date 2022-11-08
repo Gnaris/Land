@@ -1,5 +1,8 @@
 package Entity;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+
 public class LocationParser {
 
     private double x;
@@ -10,5 +13,10 @@ public class LocationParser {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public Location toLocation(String world)
+    {
+        return new Location(Bukkit.getWorld(world), this.x, this.y, this.z);
     }
 }

@@ -21,25 +21,25 @@ public class LandManagementController extends Controller {
                 land.isInArea(blocLocation) &&
                 !player.getPlayer().isOp() &&
                 !groupController.hasPermission("sperias.land.build") &&
-                land.getOwner() != player.getUniqueId()
+                !land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())
         ))
         {
             player.sendMessage("§cVous ne pouvez pas faire ceci dans une zone claim");
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     public boolean canInteractBloc(Location blocLocation)
     {
         groupController = new C_Group(player);
         if(landStore.getLandList().stream().anyMatch(land ->
-                !(land.getPlayerList().get(player.getUniqueId()) != null &&  land.getPlayerList().get(player.getUniqueId()).canOpen()) &&
+                !(land.getPlayerList().get(player.getUniqueId()) != null &&  land.getPlayerList().get(player.getUniqueId()).canInteract()) &&
                 land.isInArea(blocLocation) &&
                 !player.getPlayer().isOp() &&
+                !land.isPublicInteract() &&
                 !groupController.hasPermission("sperias.land.build") &&
-                !land.canOpenSomething() &&
-                land.getOwner() != player.getUniqueId()
+                !land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())
         ))
         {
             player.sendMessage("§cVous ne pouvez pas intéragir ce bloc qui est dans une zone claim");
@@ -57,7 +57,7 @@ public class LandManagementController extends Controller {
                 land.isInArea(animalLocation) &&
                 !player.isOp() &&
                 !groupController.hasPermission("sperias.land.killanimal") &&
-                land.getOwner() != player.getUniqueId()
+                !land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())
         ))
         {
             player.sendMessage("Vous ne pouvez pas taper les animaux car ce n'est pas gentil");

@@ -4,6 +4,10 @@ import Controller.Controller;
 import Entity.Land;
 import Entity.PlayerClaim;
 import Entity.Wallet;
+import Model.Thread.insertNewLandThread;
+import Model.Thread.invitePlayerOnLandThread;
+import Model.Thread.removePlayerOnTheLandThread;
+import Model.Thread.setPublicInteractThread;
 import SPLand.SPLand;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
@@ -19,9 +23,9 @@ public class LandController extends Controller {
         if(landStore.getPlayerLandNotConfirmed(player).size() == 0)
         {
             player.sendMessage("§cTu n'as pas de claim en cours !");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private boolean checkTarget(Player target)
@@ -29,15 +33,15 @@ public class LandController extends Controller {
         if(target == null)
         {
             player.sendMessage("§cCe joueur n'existe pas");
-            return false;
+            return true;
         }
         if(target == player)
         {
             player.sendMessage("§c...");
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     private boolean existingLand(String name)
@@ -46,14 +50,14 @@ public class LandController extends Controller {
         if(playerLand == null)
         {
             player.sendMessage("§cCe terrain n'existe pas");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     public boolean canConfirmClaim(String name)
     {
-        if(!this.haveClaimInProgress()) return false;
+        if(this.haveClaimInProgress()) return false;
 
         Land playerLand = landStore.getPlayerLandNotConfirmed(player).get(0);
         PlayerClaim playerClaim = SPLand.getInstance().getPlayerStore().getPlayerList().get(player.getUniqueId());
@@ -68,18 +72,22 @@ public class LandController extends Controller {
             player.sendMessage("§cLe nom de cette claim est déjà utilisé");
             return false;
         }
+
+
         player.sendMessage("§aFélicitation, votre terrain a été créee sous le nom de " + name);
+        Thread insertNewLandThread = new Thread(new insertNewLandThread(player.getUniqueId(), playerLand));
+        insertNewLandThread.start();
         return true;
     }
 
     public boolean canCancelClaim()
     {
-        if(!this.haveClaimInProgress()) return false;
+        if(this.haveClaimInProgress()) return false;
         player.sendMessage("§cVous avez annuler votre claim");
         return true;
     }
 
-    public boolean canShowPlayerList()
+    public boolean canShowPlayerLandList()
     {
         if(landStore.getPlayerLandList(player).size() == 0)
         {
@@ -134,7 +142,7 @@ public class LandController extends Controller {
 
     public boolean canHideLandClaim(String name)
     {
-        if(!this.existingLand(name)) return false;
+        if(this.existingLand(name)) return false;
 
         player.sendMessage("§aVous avez cacher votre claim");
         return true;
@@ -142,7 +150,7 @@ public class LandController extends Controller {
 
     public boolean canDeleteClaim(String name)
     {
-        if(!existingLand(name)) return false;
+        if(existingLand(name)) return false;
 
         player.sendMessage("§aLe terrain " + name + " a été supprimé avec succès");
         return true;
@@ -150,8 +158,8 @@ public class LandController extends Controller {
 
     public boolean canInvitePlayerOnClaim(Player target, String name)
     {
-        if(!checkTarget(target)) return false;
-        if(!existingLand(name)) return false;
+        if(checkTarget(target)) return false;
+        if(existingLand(name)) return false;
 
         Land playerLand = landStore.getPlayerLandByName(player, name);
         if(playerLand.getPlayerList().get(target.getUniqueId()) != null)
@@ -162,12 +170,15 @@ public class LandController extends Controller {
 
         player.sendMessage("§aVous avez inviter " + target.getName() + " dans votre claim");
         target.sendMessage("§a" + player.getName() + " vous a invité dans son claim");
+
+        Thread invitePlayerOnLandThread = new Thread(new invitePlayerOnLandThread(playerLand.getId(), target.getUniqueId().toString()));
+        invitePlayerOnLandThread.start();
         return true;
     }
 
-    public boolean canSetOpen(String name, String value)
+    public boolean canSetPublicInteract(String name, String value)
     {
-        if(!existingLand(name)) return false;
+        if(existingLand(name)) return false;
 
         if(!value.equalsIgnoreCase("on") && !value.equalsIgnoreCase("off"))
         {
@@ -175,20 +186,28 @@ public class LandController extends Controller {
             return false;
         }
 
+
+        Land playerLand = landStore.getPlayerLandByName(player, name);
+        boolean response = playerLand.isPublicInteract();
         if(value.equalsIgnoreCase("on"))
         {
             player.sendMessage("§aTout le monde pourra à présent intéragir avec vos blocs");
+            response = true;
         }
         if(value.equalsIgnoreCase("off"))
         {
+            response = false;
             player.sendMessage("§aPlus personne ne pourra à présent intéragir avec vos blocs");
         }
+
+        Thread setPublicInteractThread = new Thread(new setPublicInteractThread(playerLand.getId(), response));
+        setPublicInteractThread.start();
         return true;
     }
 
     public boolean canRemovePlayer(Player target, String name)
     {
-        if(!checkTarget(target)) return false;
+        if(checkTarget(target)) return false;
         Land playerLand = landStore.getPlayerLandByName(player, name);
         if(playerLand == null)
         {
@@ -202,6 +221,9 @@ public class LandController extends Controller {
         }
 
         player.sendMessage("§aCe joueur a été supprimé du terrain");
+
+        Thread removePlayerOnTheLand = new Thread(new removePlayerOnTheLandThread(playerLand.getId(), target.getUniqueId().toString()));
+        removePlayerOnTheLand.start();
         return true;
     }
 }

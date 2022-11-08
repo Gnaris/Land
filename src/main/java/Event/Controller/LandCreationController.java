@@ -28,7 +28,7 @@ public class LandCreationController extends Controller {
             player.sendMessage("§cVous ne pouvez pas claim une zone déjà claim");
             return false;
         }
-        if(landStore.getLandList().stream().anyMatch(land -> land.getMinLocation().distance(location) < 5 || land.getMaxLocation().distance(location) < 5))
+        if(landStore.getLandList().stream().anyMatch(land -> land.getMinLocation().distance(location) < 25 || land.getMaxLocation().distance(location) < 25))
         {
             player.sendMessage("§cVous êtes trop proche d'un terrain, veuillez vous éloigner");
             return false;

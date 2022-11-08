@@ -20,7 +20,7 @@ public class E_LandManagement implements Listener {
     public void onBreak(BlockBreakEvent e)
     {
         landController = new LandManagementController(e.getPlayer());
-        if(landController.canBreakPutBlock(e.getBlock().getLocation()))
+        if(!landController.canBreakPutBlock(e.getBlock().getLocation()))
         {
             e.setCancelled(true);
         }
@@ -30,7 +30,7 @@ public class E_LandManagement implements Listener {
     public void onPut(BlockPlaceEvent e)
     {
         landController = new LandManagementController(e.getPlayer());
-        if(landController.canBreakPutBlock(e.getBlock().getLocation()))
+        if(!landController.canBreakPutBlock(e.getBlock().getLocation()))
         {
             e.setCancelled(true);
         }

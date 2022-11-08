@@ -16,17 +16,17 @@ public class LandStore {
 
     public List<Land> getPlayerLandList(Player player)
     {
-        return landList.stream().filter(land -> land.getOwner() == player.getUniqueId()).collect(Collectors.toList());
+        return landList.stream().filter(land -> land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())).collect(Collectors.toList());
     }
 
     public List<Land> getPlayerLandNotConfirmed(Player player)
     {
-        return landList.stream().filter(land -> !land.isConfirmed() && land.getOwner() == player.getUniqueId()).collect(Collectors.toList());
+        return landList.stream().filter(land -> !land.isConfirmed() && land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())).collect(Collectors.toList());
     }
 
     public Land getPlayerLandByName(Player player, String name)
     {
-        List<Land> PlayerLand = landList.stream().filter(land -> land.getName() != null && land.getName().equalsIgnoreCase(name) && land.getOwner() == player.getUniqueId()).collect(Collectors.toList());
+        List<Land> PlayerLand = landList.stream().filter(land -> land.getName() != null && land.getName().equalsIgnoreCase(name) && land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())).collect(Collectors.toList());
         if(PlayerLand.size() > 0)
         {
             return PlayerLand.get(0);

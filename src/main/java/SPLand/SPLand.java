@@ -2,11 +2,15 @@ package SPLand;
 
 import Command.CMD_land;
 import Command.CMD_spland;
+import Entity.Land;
 import Entity.PlayerClaim;
+import Entity.PlayerLand;
+import Event.E_InitializePlayer;
 import Event.E_LandCreation;
 import Event.E_LandManagement;
 import LandStore.LandStore;
 import LandStore.PlayerStore;
+import Model.LandModel;
 import SPGroupManager.SPGroupManager;
 import SPWallet.SPWallet;
 import WalletStore.WalletStore;
@@ -41,8 +45,18 @@ public final class SPLand extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new E_LandCreation(), this);
         getServer().getPluginManager().registerEvents(new E_LandManagement(), this);
+        getServer().getPluginManager().registerEvents(new E_InitializePlayer(), this);
 
-        Bukkit.getOnlinePlayers().forEach(player -> getPlayerStore().getPlayerList().put(player.getUniqueId(), new PlayerClaim(player, 80000, 0)));
+        LandModel landModel = new LandModel();
+        try {
+            landStore.getLandList().addAll(landModel.getAllLand());
+            landModel.getAllPlayerLand().forEach(playerLand ->
+                    landStore.getLandList().stream().filter(land -> land.getId() == playerLand.getLandID())
+                            .forEach(land -> land.getPlayerList().put(playerLand.getPlayer(), playerLand))
+            );
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -2,23 +2,19 @@ package SPLand;
 
 import Command.CMD_land;
 import Command.CMD_spland;
-import Entity.Land;
-import Entity.PlayerClaim;
-import Entity.PlayerLand;
 import Event.E_InitializePlayer;
 import Event.E_LandCreation;
 import Event.E_LandManagement;
 import LandStore.LandStore;
-import LandStore.PlayerStore;
+import LandStore.PlayerClaimStore;
 import Model.LandModel;
 import SPGroupManager.SPGroupManager;
 import SPWallet.SPWallet;
 import WalletStore.WalletStore;
-import com.google.gson.Gson;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 import sperias.gnaris.SPDatabase.SPDatabase;
+import sperias.group.GroupStore.GroupStore;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -27,13 +23,13 @@ import java.util.Objects;
 public final class SPLand extends JavaPlugin {
 
     private final SPWallet spWallet = (SPWallet) getServer().getPluginManager().getPlugin("SP_Wallet");
-    private final SPGroupManager spGroupManager = (SPGroupManager) getServer().getPluginManager().getPlugin("SP_GroupManager");
     private final SPDatabase spDatabase = (SPDatabase) getServer().getPluginManager().getPlugin("SP_Database");
+    private final SPGroupManager spGroupManager = (SPGroupManager) getServer().getPluginManager().getPlugin("SP_GroupManager");
 
     private static SPLand INSTANCE;
 
     private final LandStore landStore = new LandStore();
-    private final PlayerStore playerStore = new PlayerStore();
+    private final PlayerClaimStore playerClaimStore = new PlayerClaimStore();
 
     @Override
     public void onEnable() {
@@ -54,6 +50,13 @@ public final class SPLand extends JavaPlugin {
                     landStore.getLandList().stream().filter(land -> land.getId() == playerLand.getLandID())
                             .forEach(land -> land.getPlayerList().put(playerLand.getPlayer(), playerLand))
             );
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                try {
+                    playerClaimStore.getPlayerClaimList().put(player.getUniqueId(), landModel.getPlayerClaim(player));
+                } catch (SQLException | ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -71,8 +74,8 @@ public final class SPLand extends JavaPlugin {
     {
         return landStore;
     }
-    public PlayerStore getPlayerStore() {
-        return playerStore;
+    public PlayerClaimStore getPlayerClaimStore() {
+        return playerClaimStore;
     }
     public static WalletStore getWalletStore()
     {
@@ -82,5 +85,9 @@ public final class SPLand extends JavaPlugin {
     public static Connection getDatabase() throws SQLException, ClassNotFoundException {
         assert getInstance().spDatabase != null;
         return getInstance().spDatabase.getSPDatabase().getDatabase();
+    }
+    public static GroupStore getGroupStore()
+    {
+        return getInstance().spGroupManager.getGroupStore();
     }
 }

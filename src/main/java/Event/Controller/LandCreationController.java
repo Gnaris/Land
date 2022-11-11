@@ -2,6 +2,7 @@ package Event.Controller;
 
 import Controller.Controller;
 import Entity.Land;
+import SPLand.SPLand;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -11,18 +12,18 @@ public class LandCreationController extends Controller {
         super(player);
     }
 
-    public boolean isInLandCreation()
+    public boolean canStartToClaim(Location location)
     {
+        if(playerClaim.getNbLand() >= SPLand.getGroupStore().getPlayerGroupList().get(player.getUniqueId()).getRank().getNbMaxLand())
+        {
+            player.sendMessage("§cVous ne pouvez pas en avoir plus de " + SPLand.getGroupStore().getPlayerGroupList().get(player.getUniqueId()).getRank().getNbMaxLand() + " terrain(s)");
+            return false;
+        }
         if(landStore.getPlayerLandNotConfirmed(player).size() > 0)
         {
             player.sendMessage("§cVous avez déjà un Land en cours ! Faites /land cancel pour l'annuler");
             return false;
         }
-        return true;
-    }
-
-    public boolean canClaimLandOnThisPosition(Location location)
-    {
         if(landStore.getLandList().size() != 0 && landStore.getLandList().stream().anyMatch(land -> land.isInArea(location)))
         {
             player.sendMessage("§cVous ne pouvez pas claim une zone déjà claim");

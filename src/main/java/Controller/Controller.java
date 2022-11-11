@@ -1,20 +1,22 @@
 package Controller;
 
+import Entity.PlayerClaim;
 import LandStore.LandStore;
+import LandStore.PlayerClaimStore;
 import Model.LandModel;
 import SPLand.SPLand;
 import org.bukkit.entity.Player;
-import sperias.group.Controller.C_Group;
 
 public class Controller{
 
     protected Player player;
+    protected PlayerClaim playerClaim;
     protected LandStore landStore = SPLand.getInstance().getLandStore();
-    protected C_Group groupController;
+    protected PlayerClaimStore playerStore = SPLand.getInstance().getPlayerClaimStore();
     protected LandModel landModel = new LandModel();
 
     public Controller(Player player) {
         this.player = player;
-        groupController = new C_Group(player);
+        playerClaim = playerStore.getPlayerClaimList().get(player.getUniqueId());
     }
 }

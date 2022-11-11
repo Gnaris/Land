@@ -6,41 +6,52 @@ public class PlayerClaim {
 
     private int id;
     private final Player player;
-    private int NbClaimBlock;
-    private int NBClaimedBlock;
+    private long NbClaimBlock;
+    private long NBClaimedBlock;
+    private int nbLand;
 
-    private static int price = 25;
+    private static long price = 25;
 
-    public PlayerClaim(Player player, int nbClaimBlock, int NBClaimedBlock) {
+    public PlayerClaim(Player player, long nbClaimBlock, long NBClaimedBlock, int nbLand) {
         this.player = player;
-        NbClaimBlock = nbClaimBlock;
+        this.NbClaimBlock = nbClaimBlock;
         this.NBClaimedBlock = NBClaimedBlock;
+        this.nbLand = nbLand;
     }
 
-    public static int getPrice() {
+    public static long getPrice() {
         return price;
     }
 
     public Player getPlayer() {
         return player;
     }
-    public int getNbClaimBlock() {
+    public long getNbClaimBlock() {
         return NbClaimBlock;
     }
-    public void addClaimBlock(int amount)
+    public long getNBClaimedBlock() {
+        return NBClaimedBlock;
+    }
+    public void addClaimBlock(long amount)
     {
         NbClaimBlock += amount;
     }
-    public void addClaimedBlock(int amount)
+    public void addClaimedBlock(long amount)
     {
         NBClaimedBlock += amount;
     }
-    public void removeClaimBlock(int amount)
+    public void removeClaimBlock(long amount)
     {
         NbClaimBlock -= amount;
     }
-    public void removeClaimedBlock(int amount)
+    public void removeClaimedBlock(long amount)
     {
         NBClaimedBlock -= amount;
+    }
+    public int getNbLand() {
+        return nbLand;
+    }
+    public void setNbLand(int nbLand) {
+        this.nbLand = nbLand;
     }
 }

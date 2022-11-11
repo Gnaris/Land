@@ -6,6 +6,7 @@ import Entity.PlayerClaim;
 import Entity.PlayerLand;
 import SPLand.SPLand;
 import com.google.gson.Gson;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
@@ -52,35 +53,32 @@ public class LandModel {
     }
 
     public List<PlayerLand> getAllPlayerLand() throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("SELECT p.uuid, plo.landID , plo.canBuild, plo.canInteract, plo.canKillAnimals FROM player_land_option plo JOIN player p ON p.id = plo.playerID");
+        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("SELECT p.uuid, plo.landID FROM player_land_option plo JOIN player p ON p.id = plo.playerID");
         ResultSet result = stmt.executeQuery();
         List<PlayerLand> playerList = new ArrayList<>();
         while(result.next())
         {
             playerList.add(new PlayerLand(
                     result.getInt("landID"),
-                    result.getString("uuid"),
-                    result.getBoolean("canBuild"),
-                    result.getBoolean("canInteract"),
-                    result.getBoolean("canKillAnimals")
+                    result.getString("uuid")
             ));
         }
         return playerList;
     }
 
     public PlayerClaim getPlayerClaim(Player player) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("SELECT nbClaimBlock, nbClaimedBlock FROM player_claimblock WHERE playerID = (SELECT id FROM player WHERE uuid = ?)");
+        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("SELECT nbClaimBlock, nbClaimedBlock, nbLand FROM player_claimblock WHERE playerID = (SELECT id FROM player WHERE uuid = ?)");
         stmt.setString(1, player.getUniqueId().toString());
         ResultSet result = stmt.executeQuery();
         while(result.next())
         {
-            return new PlayerClaim(player, result.getInt("nbClaimBlock"), result.getInt("nbClaimedBlock"));
+            return new PlayerClaim(player, result.getInt("nbClaimBlock"), result.getInt("nbClaimedBlock"), result.getInt("nbLand"));
         }
         return null;
     }
 
     public void invitePlayerOnLand(int landID, String uuid) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("INSERT INTO player_land_option VALUES (NULL, ?, (SELECT id FROM player WHERE uuid = ?), DEFAULT, DEFAULT, DEFAULT)");
+        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("INSERT INTO player_land_option VALUES (NULL, ?, (SELECT id FROM player WHERE uuid = ?))");
         stmt.setInt(1, landID);
         stmt.setString(2, uuid);
         stmt.executeUpdate();
@@ -99,4 +97,25 @@ public class LandModel {
         stmt.setInt(2, landID);
         stmt.executeUpdate();
     }
+
+    public void updatePlayerClaimBlock(String uuid, long claimBlock) throws SQLException, ClassNotFoundException {
+        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("UPDATE player_claimblock SET nbClaimBlock = ? WHERE playerID = (SELECT id FROM player WHERE uuid = ?)");
+        stmt.setLong(1, claimBlock);
+        stmt.setString(2, uuid);
+        stmt.executeUpdate();
+    }
+
+    public void updatePlayerClaimedBlock(String uuid, long claimedBlock) throws SQLException, ClassNotFoundException {
+        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("UPDATE player_claimblock SET nbClaimedBlock = ? WHERE playerID = (SELECT id FROM player WHERe uuid = ?)");
+        stmt.setLong(1, claimedBlock);
+        stmt.setString(2, uuid);
+        stmt.executeUpdate();
+    }
+
+    public void deleteLand(int landID) throws SQLException, ClassNotFoundException {
+        PreparedStatement stmt = SPLand.getDatabase().prepareStatement("DELETE FROM player_land WHERE id = ?");
+        stmt.setInt(1, landID);
+        stmt.executeUpdate();
+    }
+
 }

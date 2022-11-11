@@ -3,11 +3,9 @@ package Event.Controller;
 import Controller.Controller;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import sperias.group.Controller.C_Group;
 
 public class LandManagementController extends Controller {
 
-    private C_Group groupController;
 
     public LandManagementController(Player player) {
         super(player);
@@ -15,12 +13,11 @@ public class LandManagementController extends Controller {
 
     public boolean canBreakPutBlock(Location blocLocation)
     {
-        groupController = new C_Group(player);
         if(landStore.getLandList().stream().anyMatch(land ->
-                !(land.getPlayerList().get(player.getUniqueId()) != null &&  land.getPlayerList().get(player.getUniqueId()).canBuild()) &&
+                land.getPlayerList().get(player.getUniqueId()) == null &&
                 land.isInArea(blocLocation) &&
-                !player.getPlayer().isOp() &&
-                !groupController.hasPermission("sperias.land.build") &&
+                !player.isOp() &&
+                !player.hasPermission("sperias.land.modify") &&
                 !land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())
         ))
         {
@@ -32,13 +29,12 @@ public class LandManagementController extends Controller {
 
     public boolean canInteractBloc(Location blocLocation)
     {
-        groupController = new C_Group(player);
         if(landStore.getLandList().stream().anyMatch(land ->
-                !(land.getPlayerList().get(player.getUniqueId()) != null &&  land.getPlayerList().get(player.getUniqueId()).canInteract()) &&
+                land.getPlayerList().get(player.getUniqueId()) == null &&
                 land.isInArea(blocLocation) &&
-                !player.getPlayer().isOp() &&
+                !player.isOp() &&
                 !land.isPublicInteract() &&
-                !groupController.hasPermission("sperias.land.build") &&
+                !player.hasPermission("sperias.land.modify") &&
                 !land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())
         ))
         {
@@ -51,12 +47,11 @@ public class LandManagementController extends Controller {
 
     public boolean canKillAnimals(Location animalLocation)
     {
-        groupController = new C_Group(player);
         if(landStore.getLandList().stream().anyMatch(land ->
-                !(land.getPlayerList().get(player.getUniqueId()) != null &&  land.getPlayerList().get(player.getUniqueId()).canKillAnimals()) &&
+                land.getPlayerList().get(player.getUniqueId()) == null &&
                 land.isInArea(animalLocation) &&
                 !player.isOp() &&
-                !groupController.hasPermission("sperias.land.killanimal") &&
+                !player.hasPermission("sperias.land.modify") &&
                 !land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())
         ))
         {

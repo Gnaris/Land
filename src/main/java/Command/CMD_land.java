@@ -6,7 +6,7 @@ import Entity.PlayerClaim;
 import Entity.PlayerLand;
 import Entity.Wallet;
 import LandStore.LandStore;
-import LandStore.PlayerStore;
+import LandStore.PlayerClaimStore;
 import SPLand.SPLand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -24,7 +24,7 @@ public class CMD_land implements CommandExecutor {
             Player player = (Player) sender;
 
             LandStore landStore = SPLand.getInstance().getLandStore();
-            PlayerStore playerStore = SPLand.getInstance().getPlayerStore();
+            PlayerClaim playerClaim = SPLand.getInstance().getPlayerClaimStore().getPlayerClaimList().get(player.getUniqueId());
             Wallet playerWallet = SPLand.getWalletStore().getWalletList().get(player.getUniqueId());
             LandController landController = new LandController(player);
 
@@ -46,8 +46,13 @@ public class CMD_land implements CommandExecutor {
                 {
                     return landController.canShowPlayerLandList();
                 }
-            }
 
+                if(args[0].equalsIgnoreCase("test"))
+                {
+                    player.sendMessage(player.hasPermission("sperias.wallet.command.add") + " BLABLA");
+                    return true;
+                }
+            }
 
             if(args.length == 2)
             {
@@ -59,44 +64,28 @@ public class CMD_land implements CommandExecutor {
                     playerLand.confirmLand(args[1]);
                     Bukkit.getScheduler().cancelTask(playerLand.getSchedulerID());
 
-                    PlayerClaim playerClaim = playerStore.getPlayerList().get(player.getUniqueId());
                     playerClaim.removeClaimBlock(playerLand.getAirOfClaim());
                     playerClaim.addClaimedBlock(playerLand.getAirOfClaim());
+                    playerClaim.setNbLand(playerClaim.getNbLand() + 1);
 
                     return true;
                 }
 
                 if(args[0].equalsIgnoreCase("buyclaimblock"))
                 {
-                    int amount;
-                    try{
-                        amount = Integer.parseInt(args[1]);
-                    }catch (NumberFormatException e)
-                    {
-                        player.sendMessage("§c" + args[1] + " n'est pas un montant valide");
-                        return false;
-                    }
-                    PlayerClaim playerClaim = playerStore.getPlayerList().get(player.getUniqueId());
-                    if(!landController.canBuyClaimBlock(playerWallet, amount)) return false;
-                    playerWallet.remove(amount * PlayerClaim.getPrice());
-                    playerClaim.addClaimBlock(amount);
+                    if(!landController.canBuyClaimBlock(playerWallet, args[1])) return false;
+                    long blockAmount = Long.parseLong(args[1]);
+                    playerWallet.remove(blockAmount * PlayerClaim.getPrice());
+                    playerClaim.addClaimBlock(blockAmount);
                     return true;
                 }
 
                 if(args[0].equalsIgnoreCase("sellclaimblock"))
                 {
-                    int amount;
-                    try{
-                        amount = Integer.parseInt(args[1]);
-                    }catch (NumberFormatException e)
-                    {
-                        player.sendMessage("§c" + args[1] + " n'est pas un montant valide");
-                        return false;
-                    }
-                    PlayerClaim playerClaim = playerStore.getPlayerList().get(player.getUniqueId());
-                    if(!landController.canSellClaimBlock(amount)) return false;
-                    playerWallet.add(amount * PlayerClaim.getPrice());
-                    playerClaim.removeClaimBlock(amount);
+                    if(!landController.canSellClaimBlock(args[1])) return false;
+                    long blockAmount = Long.parseLong(args[1]);
+                    playerWallet.add(blockAmount * PlayerClaim.getPrice());
+                    playerClaim.removeClaimBlock(blockAmount);
                     return true;
                 }
 
@@ -118,13 +107,18 @@ public class CMD_land implements CommandExecutor {
 
                 if(args[0].equalsIgnoreCase("delete"))
                 {
-                    if(!landController.canDeleteClaim(args[1])) return false;
+                    if(!landController.canDeleteLand(args[1])) return false;
                     Land PlayerLand = landStore.getPlayerLandByName(player, args[1]);
                     landStore.getLandList().remove(PlayerLand);
-                    PlayerClaim playerClaim = playerStore.getPlayerList().get(player.getUniqueId());
                     playerClaim.removeClaimedBlock(PlayerLand.getAirOfClaim());
                     playerClaim.addClaimBlock(PlayerLand.getAirOfClaim());
+                    playerClaim.setNbLand(playerClaim.getNbLand() - 1);
                     return true;
+                }
+
+                if(args[0].equalsIgnoreCase("info"))
+                {
+                    return !landController.canShowLandInfo(args[1]);
                 }
             }
 
@@ -134,7 +128,7 @@ public class CMD_land implements CommandExecutor {
                 {
                     if(!landController.canInvitePlayerOnClaim(Bukkit.getPlayer(args[1]), args[2])) return false;
                     Land playerLand = SPLand.getInstance().getLandStore().getPlayerLandByName(player, args[2]);
-                    playerLand.getPlayerList().put(Objects.requireNonNull(Bukkit.getPlayer(args[1])).getUniqueId(), new PlayerLand(playerLand.getId(), Bukkit.getPlayer(args[1]).getUniqueId().toString(), false,  false, false));
+                    playerLand.getPlayerList().put(Objects.requireNonNull(Bukkit.getPlayer(args[1])).getUniqueId(), new PlayerLand(playerLand.getId(), Bukkit.getPlayer(args[1]).getUniqueId().toString()));
                     return true;
                 }
 

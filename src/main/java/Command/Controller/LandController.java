@@ -4,13 +4,13 @@ import Controller.Controller;
 import Entity.Land;
 import Entity.PlayerClaim;
 import Entity.Wallet;
-import Model.Thread.insertNewLandThread;
-import Model.Thread.invitePlayerOnLandThread;
-import Model.Thread.removePlayerOnTheLandThread;
-import Model.Thread.setPublicInteractThread;
+import Model.Thread.*;
 import SPLand.SPLand;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 public class LandController extends Controller {
 
@@ -18,14 +18,14 @@ public class LandController extends Controller {
         super(player);
     }
 
-    private boolean haveClaimInProgress()
+    private boolean claimNotInProgress()
     {
         if(landStore.getPlayerLandNotConfirmed(player).size() == 0)
         {
             player.sendMessage("§cTu n'as pas de claim en cours !");
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     private boolean checkTarget(Player target)
@@ -33,15 +33,15 @@ public class LandController extends Controller {
         if(target == null)
         {
             player.sendMessage("§cCe joueur n'existe pas");
-            return true;
+            return false;
         }
         if(target == player)
         {
             player.sendMessage("§c...");
-            return true;
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     private boolean existingLand(String name)
@@ -50,17 +50,29 @@ public class LandController extends Controller {
         if(playerLand == null)
         {
             player.sendMessage("§cCe terrain n'existe pas");
-            return true;
+            return false;
         }
-        return false;
+        return true;
+    }
+
+    private boolean isLongFormat(String amount)
+    {
+        try{
+            Long.parseLong(amount);
+        }catch (NumberFormatException e)
+        {
+            player.sendMessage("§c" + amount + " n'est pas un montant valide");
+            return false;
+        }
+
+        return true;
     }
 
     public boolean canConfirmClaim(String name)
     {
-        if(this.haveClaimInProgress()) return false;
+        if(!this.claimNotInProgress()) return false;
 
         Land playerLand = landStore.getPlayerLandNotConfirmed(player).get(0);
-        PlayerClaim playerClaim = SPLand.getInstance().getPlayerStore().getPlayerList().get(player.getUniqueId());
 
         if(playerClaim.getNbClaimBlock() - playerLand.getAirOfClaim() < 0)
         {
@@ -75,14 +87,15 @@ public class LandController extends Controller {
 
 
         player.sendMessage("§aFélicitation, votre terrain a été créee sous le nom de " + name);
-        Thread insertNewLandThread = new Thread(new insertNewLandThread(player.getUniqueId(), playerLand));
-        insertNewLandThread.start();
+        new Thread(new insertNewLandThread(player.getUniqueId(), playerLand)).start();
+        new Thread(new updatePlayerClaimBlockThread(player.getUniqueId().toString(), (playerClaim.getNbClaimBlock() - playerLand.getAirOfClaim()))).start();
+        new Thread(new updatePlayerClaimedBlockThread(player.getUniqueId().toString(), (playerClaim.getNBClaimedBlock() + playerLand.getAirOfClaim()))).start();
         return true;
     }
 
     public boolean canCancelClaim()
     {
-        if(this.haveClaimInProgress()) return false;
+        if(!this.claimNotInProgress()) return false;
         player.sendMessage("§cVous avez annuler votre claim");
         return true;
     }
@@ -102,64 +115,67 @@ public class LandController extends Controller {
         return true;
     }
 
-    public boolean canBuyClaimBlock(Wallet PlayerWallet, int BlockAmount)
+    public boolean canBuyClaimBlock(Wallet playerWallet, String amount)
     {
-        if((PlayerWallet.getMoney() - (BlockAmount * PlayerClaim.getPrice())) < 0)
+        if(!isLongFormat(amount)) return false;
+        long blockAmount = Long.parseLong(amount);
+        if((playerWallet.getBalance() - ( blockAmount * PlayerClaim.getPrice())) < 0)
         {
-            player.sendMessage("§cVous n'avez pas assez d'argent. Il vous manque " + ((BlockAmount * PlayerClaim.getPrice()) - PlayerWallet.getMoney()) + "$");
+            player.sendMessage("§cVous n'avez pas assez d'argent. Il vous manque " + ((blockAmount * PlayerClaim.getPrice()) - playerWallet.getBalance()) + "$");
             return false;
         }
 
-        player.sendMessage("§aVous venez d'acheter " + BlockAmount + " bloc(s) de claim pour " + (BlockAmount * PlayerClaim.getPrice()) + "$");
+        player.sendMessage("§aVous venez d'acheter " + blockAmount + " bloc(s) de claim pour " + (blockAmount * PlayerClaim.getPrice()) + "$");
+        new Thread(new updatePlayerClaimBlockThread(player.getUniqueId().toString(), (blockAmount + playerClaim.getNbClaimBlock()))).start();
         return true;
     }
 
-    public boolean canSellClaimBlock(int BlockAmount)
+    public boolean canSellClaimBlock(String amount)
     {
-        PlayerClaim playerClaim = SPLand.getInstance().getPlayerStore().getPlayerList().get(player.getUniqueId());
-        if((playerClaim.getNbClaimBlock() - BlockAmount) < 0)
+        if(!this.isLongFormat(amount)) return false;
+        long blockAmount = Long.parseLong(amount);
+        if((playerClaim.getNbClaimBlock() - blockAmount) < 0)
         {
             player.sendMessage("§cVous ne pouvez pas vendre plus de " + playerClaim.getNbClaimBlock() + " bloc(s)");
             return false;
         }
 
-        player.sendMessage("§aVous venez de vendre " + BlockAmount + " bloc(s) pour " + (BlockAmount * PlayerClaim.getPrice()) + "$");
+        player.sendMessage("§aVous venez de vendre " + blockAmount + " bloc(s) pour " + (blockAmount * PlayerClaim.getPrice()) + "$");
+        new Thread(new updatePlayerClaimBlockThread(player.getUniqueId().toString(), (playerClaim.getNbClaimBlock() - blockAmount))).start();
         return true;
     }
 
     public boolean canShowLandClaim(String name)
     {
-        Land playerLand = landStore.getPlayerLandByName(player, name);
-        if(playerLand == null)
-        {
-            player.sendMessage("§cCe terrain n'existe pas");
-            return false;
-        }
-
+        if(!this.existingLand(name)) return false;
         player.sendMessage("§aPour cacher les claims faites /land hide " + name);
         return true;
     }
 
     public boolean canHideLandClaim(String name)
     {
-        if(this.existingLand(name)) return false;
+        if(!this.existingLand(name)) return false;
 
         player.sendMessage("§aVous avez cacher votre claim");
         return true;
     }
 
-    public boolean canDeleteClaim(String name)
+    public boolean canDeleteLand(String name)
     {
-        if(existingLand(name)) return false;
+        if(!this.existingLand(name)) return false;
 
+        Land playerLand = landStore.getPlayerLandByName(player, name);
         player.sendMessage("§aLe terrain " + name + " a été supprimé avec succès");
+        new Thread(new updatePlayerClaimBlockThread(player.getUniqueId().toString(), (playerClaim.getNbClaimBlock() + playerLand.getAirOfClaim()))).start();
+        new Thread(new updatePlayerClaimedBlockThread(player.getUniqueId().toString(), (playerClaim.getNBClaimedBlock() - playerLand.getAirOfClaim()))).start();
+        new Thread(new deleteLandThread(playerLand.getId())).start();
         return true;
     }
 
     public boolean canInvitePlayerOnClaim(Player target, String name)
     {
-        if(checkTarget(target)) return false;
-        if(existingLand(name)) return false;
+        if(!this.checkTarget(target)) return false;
+        if(!this.existingLand(name)) return false;
 
         Land playerLand = landStore.getPlayerLandByName(player, name);
         if(playerLand.getPlayerList().get(target.getUniqueId()) != null)
@@ -171,14 +187,13 @@ public class LandController extends Controller {
         player.sendMessage("§aVous avez inviter " + target.getName() + " dans votre claim");
         target.sendMessage("§a" + player.getName() + " vous a invité dans son claim");
 
-        Thread invitePlayerOnLandThread = new Thread(new invitePlayerOnLandThread(playerLand.getId(), target.getUniqueId().toString()));
-        invitePlayerOnLandThread.start();
+        new Thread(new invitePlayerOnLandThread(playerLand.getId(), target.getUniqueId().toString())).start();
         return true;
     }
 
     public boolean canSetPublicInteract(String name, String value)
     {
-        if(existingLand(name)) return false;
+        if(!this.existingLand(name)) return false;
 
         if(!value.equalsIgnoreCase("on") && !value.equalsIgnoreCase("off"))
         {
@@ -200,14 +215,13 @@ public class LandController extends Controller {
             player.sendMessage("§aPlus personne ne pourra à présent intéragir avec vos blocs");
         }
 
-        Thread setPublicInteractThread = new Thread(new setPublicInteractThread(playerLand.getId(), response));
-        setPublicInteractThread.start();
+        new Thread(new setPublicInteractThread(playerLand.getId(), response)).start();
         return true;
     }
 
     public boolean canRemovePlayer(Player target, String name)
     {
-        if(checkTarget(target)) return false;
+        if(!checkTarget(target)) return false;
         Land playerLand = landStore.getPlayerLandByName(player, name);
         if(playerLand == null)
         {
@@ -222,8 +236,36 @@ public class LandController extends Controller {
 
         player.sendMessage("§aCe joueur a été supprimé du terrain");
 
-        Thread removePlayerOnTheLand = new Thread(new removePlayerOnTheLandThread(playerLand.getId(), target.getUniqueId().toString()));
-        removePlayerOnTheLand.start();
+        new Thread(new removePlayerOnTheLandThread(playerLand.getId(), target.getUniqueId().toString())).start();
+        return true;
+    }
+
+    public boolean canShowLandInfo(String name)
+    {
+        if(!this.existingLand(name)) return false;
+        Land playerLand = landStore.getPlayerLandByName(player, name);
+
+        player.sendMessage("Land : " + playerLand.getName());
+        player.sendMessage("");
+        player.sendMessage("Claim : ");
+        player.sendMessage("Position A : X :" + playerLand.getFirstLocation().getX() + " Z : " + playerLand.getFirstLocation().getZ());
+        player.sendMessage("Position B : X :" + playerLand.getSecondLocation().getX() + " Z : " + playerLand.getSecondLocation().getZ());
+        player.sendMessage("");
+        player.sendMessage("Liste des joueurs dans votre claim :");
+        StringBuilder playerList = new StringBuilder();
+        if(playerLand.getPlayerList().size() > 0)
+        {
+            for(UUID uuid : playerLand.getPlayerList().keySet())
+            {
+                playerList.append(Bukkit.getPlayer(uuid).getName()).append(" ");
+            }
+            player.sendMessage(playerList.toString());
+        }
+        else
+        {
+            player.sendMessage("Tu es tout seul :(");
+        }
+
         return true;
     }
 }

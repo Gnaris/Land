@@ -2,57 +2,45 @@ package SPLand;
 
 import Command.CMD_land;
 import Command.CMD_spland;
+import Entity.Land;
+import Entity.PlayerClaim;
 import Event.E_InitializePlayer;
 import Event.E_LandCreation;
 import Event.E_LandManagement;
-import LandStore.LandStore;
-import LandStore.PlayerClaimStore;
 import Model.LandModel;
-import SPGroupManager.SPGroupManager;
-import SPWallet.SPWallet;
-import WalletStore.WalletStore;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import sperias.gnaris.SPDatabase.SPDatabase;
-import sperias.group.GroupStore.GroupStore;
 
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class SPLand extends JavaPlugin {
 
-    private final SPWallet spWallet = (SPWallet) getServer().getPluginManager().getPlugin("SP_Wallet");
-    private final SPDatabase spDatabase = (SPDatabase) getServer().getPluginManager().getPlugin("SP_Database");
-    private final SPGroupManager spGroupManager = (SPGroupManager) getServer().getPluginManager().getPlugin("SP_GroupManager");
-
-    private static SPLand INSTANCE;
-
-    private final LandStore landStore = new LandStore();
-    private final PlayerClaimStore playerClaimStore = new PlayerClaimStore();
+    private final List<Land> landList = new ArrayList<>();
+    private final Map<UUID, PlayerClaim> playerClaimList = new HashMap<>();
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
+        Objects.requireNonNull(getCommand("land")).setExecutor(new CMD_land(this));
+        Objects.requireNonNull(getCommand("spland")).setExecutor(new CMD_spland(this));
 
-        INSTANCE = this;
-
-        Objects.requireNonNull(getCommand("land")).setExecutor(new CMD_land());
-        Objects.requireNonNull(getCommand("spland")).setExecutor(new CMD_spland());
-
-        getServer().getPluginManager().registerEvents(new E_LandCreation(), this);
-        getServer().getPluginManager().registerEvents(new E_LandManagement(), this);
-        getServer().getPluginManager().registerEvents(new E_InitializePlayer(), this);
+        getServer().getPluginManager().registerEvents(new E_LandCreation(this), this);
+        getServer().getPluginManager().registerEvents(new E_LandManagement(this), this);
+        getServer().getPluginManager().registerEvents(new E_InitializePlayer(this), this);
 
         LandModel landModel = new LandModel();
         try {
-            landStore.getLandList().addAll(landModel.getAllLand());
+            landList.addAll(landModel.getAllLand(this));
             landModel.getAllPlayerLand().forEach(playerLand ->
-                    landStore.getLandList().stream().filter(land -> land.getId() == playerLand.getLandID())
+                    landList.stream().filter(land -> land.getLandID() == playerLand.getLandID())
                             .forEach(land -> land.getPlayerList().put(playerLand.getPlayer(), playerLand))
             );
             Bukkit.getOnlinePlayers().forEach(player -> {
                 try {
-                    playerClaimStore.getPlayerClaimList().put(player.getUniqueId(), landModel.getPlayerClaim(player));
+                    playerClaimList.put(player.getUniqueId(), landModel.getPlayerClaim(player));
                 } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -67,27 +55,46 @@ public final class SPLand extends JavaPlugin {
         // Plugin shutdown logic
     }
 
-    public static SPLand getInstance() {
-        return INSTANCE;
+    public Map<UUID, PlayerClaim> getPlayerClaimList() {
+        return playerClaimList;
     }
-    public LandStore getLandStore()
+    public List<Land> getLandList() {
+        return landList;
+    }
+
+    public List<Land> getPlayerLandList(Player player)
     {
-        return landStore;
+        return landList.stream().filter(land -> land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())).collect(Collectors.toList());
     }
-    public PlayerClaimStore getPlayerClaimStore() {
-        return playerClaimStore;
-    }
-    public static WalletStore getWalletStore()
+    public List<Land> getPlayerLandNotConfirmed(Player player)
     {
-        assert getInstance().spWallet != null;
-        return  getInstance().spWallet.getWalletStore();
+        return landList.stream().filter(land -> !land.isConfirmed() && land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString())).collect(Collectors.toList());
     }
-    public static Connection getDatabase() throws SQLException, ClassNotFoundException {
-        assert getInstance().spDatabase != null;
-        return getInstance().spDatabase.getSPDatabase().getDatabase();
-    }
-    public static GroupStore getGroupStore()
+    public Land getPlayerLandByName(Player player, String name)
     {
-        return getInstance().spGroupManager.getGroupStore();
+        List<Land> PlayerLand = landList.stream().filter(land -> land.getLandName() != null && land.getLandName().equalsIgnoreCase(name) && land.getOwner().toString().equalsIgnoreCase(player.getUniqueId().toString()) && !land.isStaffClaim()).collect(Collectors.toList());
+        if(PlayerLand.size() > 0)
+        {
+            return PlayerLand.get(0);
+        }
+        return null;
+    }
+    public List<Land> getStaffLandList()
+    {
+        return landList.stream().filter(Land::isStaffClaim).collect(Collectors.toList());
+    }
+    public Land getStaffLandByName(String name)
+    {
+        List<Land> PlayerLand = landList.stream().filter(land -> land.getLandName() != null && land.getLandName().equalsIgnoreCase(name) && land.isStaffClaim()).collect(Collectors.toList());
+        if(PlayerLand.size() > 0)
+        {
+            return PlayerLand.get(0);
+        }
+        return null;
+    }
+
+    public int getMaxID()
+    {
+        return landList.stream().max(Comparator.comparing(Land::getLandID)).get().getLandID();
     }
 }

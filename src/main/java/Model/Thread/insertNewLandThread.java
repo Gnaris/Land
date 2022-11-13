@@ -4,22 +4,25 @@ import Entity.Land;
 import Model.LandModel;
 
 import java.sql.SQLException;
-import java.util.UUID;
 
 public class insertNewLandThread extends LandModel implements Runnable{
 
-    private UUID uuid;
-    private Land land;
+    private final int playerID;
+    private final String landName;
+    private final Land land;
+    private final boolean staffClaim;
 
-    public insertNewLandThread(UUID uuid, Land land) {
-        this.uuid = uuid;
+    public insertNewLandThread(int playerID, String landName, Land land, boolean staffClaim) {
+        this.playerID = playerID;
+        this.landName = landName;
         this.land = land;
+        this.staffClaim = staffClaim;
     }
 
     @Override
     public void run() {
         try {
-            this.insertNewLand(this.uuid, this.land);
+            this.insertNewLand(playerID, landName, land, staffClaim);
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

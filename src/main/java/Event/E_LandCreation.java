@@ -2,7 +2,6 @@ package Event;
 
 import Entity.Land;
 import Event.Controller.LandCreationController;
-import LandStore.LandStore;
 import SPLand.SPLand;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -18,8 +17,12 @@ import java.util.UUID;
 
 public class E_LandCreation implements Listener {
 
-    private Map<UUID, Land> land = new HashMap<>();
-    private final LandStore landStore = SPLand.getInstance().getLandStore();
+    private final Map<UUID, Land> land = new HashMap<>();
+    private final SPLand plugin;
+
+    public E_LandCreation(SPLand plugin) {
+        this.plugin = plugin;
+    }
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e)
@@ -30,7 +33,7 @@ public class E_LandCreation implements Listener {
         if(!e.getItem().getItemMeta().getDisplayName().equalsIgnoreCase("§eBâton de terrain")) return;
 
         // Normal Claim Mode
-        LandCreationController landController = new LandCreationController(e.getPlayer());
+        LandCreationController landController = new LandCreationController(e.getPlayer(), plugin);
         if(!landController.canStartToClaim(e.getClickedBlock().getLocation())) return;
 
         if(land.get(e.getPlayer().getUniqueId()) == null)
@@ -41,19 +44,24 @@ public class E_LandCreation implements Listener {
         if(playerLand.getFirstLocation() == null)
         {
             playerLand.setFirstLocation(e.getClickedBlock().getLocation());
-            playerLand.setSchedulerID(Bukkit.getScheduler().runTaskLater(SPLand.getInstance(), playerLand, 20 * 60 * 5).getTaskId());
+            playerLand.setSchedulerID(Bukkit.getScheduler().runTaskLater(plugin, playerLand, 20 * 60 * 5).getTaskId());
             e.getPlayer().sendMessage("§eVous avez 5 minutes pour compléter votre terrain");
         }
         else
         {
             playerLand.setSecondLocation(e.getClickedBlock().getLocation());
-            if(!landController.canClaimLand(playerLand)) return;
-            landStore.getLandList().add(playerLand);
+            if(!landController.canClaimLand(playerLand))
+            {
+                land.get(e.getPlayer().getUniqueId()).hideArea();
+                land.remove(e.getPlayer().getUniqueId());
+                return;
+            }
+            plugin.getLandList().add(playerLand);
             playerLand.showArea();
             land.remove(e.getPlayer().getUniqueId());
         }
 
-        Bukkit.getScheduler().runTaskLater(SPLand.getInstance(), () -> e.getPlayer().sendBlockChange(e.getClickedBlock().getLocation(), Material.OCHRE_FROGLIGHT.createBlockData()), 0);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> e.getPlayer().sendBlockChange(e.getClickedBlock().getLocation(), Material.OCHRE_FROGLIGHT.createBlockData()), 0);
     }
 
     @EventHandler

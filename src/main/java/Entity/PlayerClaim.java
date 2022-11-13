@@ -4,25 +4,23 @@ import org.bukkit.entity.Player;
 
 public class PlayerClaim {
 
-    private int id;
+    private int playerID;
     private final Player player;
     private long NbClaimBlock;
     private long NBClaimedBlock;
     private int nbLand;
 
-    private static long price = 25;
-
-    public PlayerClaim(Player player, long nbClaimBlock, long NBClaimedBlock, int nbLand) {
+    public PlayerClaim(Player player, int playerID, long nbClaimBlock, long NBClaimedBlock, int nbLand) {
         this.player = player;
+        this.playerID = playerID;
         this.NbClaimBlock = nbClaimBlock;
         this.NBClaimedBlock = NBClaimedBlock;
         this.nbLand = nbLand;
     }
 
-    public static long getPrice() {
-        return price;
+    public int getPlayerID() {
+        return playerID;
     }
-
     public Player getPlayer() {
         return player;
     }

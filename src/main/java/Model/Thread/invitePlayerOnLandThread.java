@@ -7,18 +7,22 @@ import java.sql.SQLException;
 
 public class invitePlayerOnLandThread extends LandModel implements Runnable {
 
-    private final int landID;
-    private final String uuid;
+    private final int playerID;
+    private final String landName;
+    private final boolean staffClaim;
+    private final String targetUUID;
 
-    public invitePlayerOnLandThread(int landID, String uuid) {
-        this.landID = landID;
-        this.uuid = uuid;
+    public invitePlayerOnLandThread(int playerID, String landName, boolean staffClaim, String targetUUID) {
+        this.playerID = playerID;
+        this.landName = landName;
+        this.staffClaim = staffClaim;
+        this.targetUUID = targetUUID;
     }
 
     @Override
     public void run() {
         try {
-            this.invitePlayerOnLand(this.landID, this.uuid);
+            this.invitePlayerOnLand(playerID, landName, staffClaim, targetUUID);
         } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

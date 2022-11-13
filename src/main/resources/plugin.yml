@@ -3,7 +3,12 @@ version: '${project.version}'
 main: SPLand.SPLand
 api-version: 1.19
 authors: [ Gnaris ]
+depend: [SP_Wallet, SP_GroupManager, SP_Database]
 commands:
   spland:
   land:
-depend: [SP_Wallet, SP_GroupManager, SP_Database]
+permission:
+  sperias.land.claim.modify:
+    description: "Peut tout faire sur les terrains des joueurs"
+  sperias.land.command.staff:
+    description: "Claim ou voir des terrains de staff"

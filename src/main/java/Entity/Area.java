@@ -6,38 +6,33 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 public class Area {
 
-    protected int id;
     protected UUID owner;
-    protected Player ownerPlayer;
-    protected World world;
     protected Location firstLocation;
     protected Location secondLocation;
+
     protected Location thirdLocation;
     protected Location fourthLocation;
-
     protected Location minLocation;
     protected Location maxLocation;
 
+    protected SPLand plugin;
+
     public Area(UUID owner) {
         this.owner = owner;
-        this.ownerPlayer = Bukkit.getPlayer(owner);
-        this.world = ownerPlayer.getWorld();
     }
 
-    public Area(int id, String owner, String world, Location firstLocation, Location secondLocation)
+    public Area(String owner, Location firstLocation, Location secondLocation, SPLand plugin)
     {
-        this.id = id;
         this.owner = UUID.fromString(owner);
-        this.world = Bukkit.getWorld(world);
         this.firstLocation = firstLocation;
         this.secondLocation = secondLocation;
-        SerializeMinMaxLocation();
+        this.plugin = plugin;
+        initializeMinMaxLocation();
         initializeThirdFourthLocation();
     }
     public boolean isInArea(Location location)
@@ -46,30 +41,26 @@ public class Area {
     }
     public void showArea()
     {
-        ownerPlayer = ownerPlayer == null ? Bukkit.getPlayer(owner) : ownerPlayer;
-        Bukkit.getScheduler().runTaskLater(SPLand.getInstance(), ()->{
-            ownerPlayer.sendBlockChange(new Location(world, firstLocation.getX(), firstLocation.getY(), firstLocation.getZ()), Material.OCHRE_FROGLIGHT.createBlockData());
-            ownerPlayer.sendBlockChange(new Location(world, secondLocation.getX(), secondLocation.getY(), secondLocation.getZ()), Material.OCHRE_FROGLIGHT.createBlockData());
-            ownerPlayer.sendBlockChange(new Location(world, thirdLocation.getX(), thirdLocation.getY(), thirdLocation.getZ()), Material.VERDANT_FROGLIGHT.createBlockData());
-            ownerPlayer.sendBlockChange(new Location(world, fourthLocation.getX(), fourthLocation.getY(), fourthLocation.getZ()), Material.PEARLESCENT_FROGLIGHT.createBlockData());
-        }, 0);
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), firstLocation.getX(), firstLocation.getY(), firstLocation.getZ()), Material.OCHRE_FROGLIGHT.createBlockData());
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), secondLocation.getX(), secondLocation.getY(), secondLocation.getZ()), Material.OCHRE_FROGLIGHT.createBlockData());
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), thirdLocation.getX(), thirdLocation.getY(), thirdLocation.getZ()), Material.VERDANT_FROGLIGHT.createBlockData());
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), fourthLocation.getX(), fourthLocation.getY(), fourthLocation.getZ()), Material.PEARLESCENT_FROGLIGHT.createBlockData());
     }
     public void hideArea()
     {
-        ownerPlayer = ownerPlayer == null ? Bukkit.getPlayer(owner) : ownerPlayer;
-        ownerPlayer.sendBlockChange(new Location(world, firstLocation.getX(), firstLocation.getY(), firstLocation.getZ()), firstLocation.getBlock().getBlockData());
-        ownerPlayer.sendBlockChange(new Location(world, secondLocation.getX(), secondLocation.getY(), secondLocation.getZ()), secondLocation.getBlock().getBlockData());
-        ownerPlayer.sendBlockChange(new Location(world, thirdLocation.getX(), thirdLocation.getY(), thirdLocation.getZ()), thirdLocation.getBlock().getBlockData());
-        ownerPlayer.sendBlockChange(new Location(world, fourthLocation.getX(), fourthLocation.getY(), fourthLocation.getZ()), fourthLocation.getBlock().getBlockData());
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), firstLocation.getX(), firstLocation.getY(), firstLocation.getZ()), firstLocation.getBlock().getBlockData());
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), secondLocation.getX(), secondLocation.getY(), secondLocation.getZ()), secondLocation.getBlock().getBlockData());
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), thirdLocation.getX(), thirdLocation.getY(), thirdLocation.getZ()), thirdLocation.getBlock().getBlockData());
+        Bukkit.getPlayer(owner).sendBlockChange(new Location(firstLocation.getWorld(), fourthLocation.getX(), fourthLocation.getY(), fourthLocation.getZ()), fourthLocation.getBlock().getBlockData());
     }
-    protected void SerializeMinMaxLocation()
+    protected void initializeMinMaxLocation()
     {
-        minLocation = new Location(this.world,
+        minLocation = new Location(firstLocation.getWorld(),
                 (int)Math.min(firstLocation.getX(), secondLocation.getX()),
                 (int)Math.min(firstLocation.getY(), secondLocation.getY()),
                 (int)Math.min(firstLocation.getZ(), secondLocation.getZ())
         );
-        maxLocation = new Location(this.world,
+        maxLocation = new Location(firstLocation.getWorld(),
                 (int)Math.max(firstLocation.getX(), secondLocation.getX()),
                 (int)Math.max(firstLocation.getY(), secondLocation.getY()),
                 (int)Math.max(firstLocation.getZ(), secondLocation.getZ())
@@ -77,26 +68,17 @@ public class Area {
     }
     public void initializeThirdFourthLocation()
     {
-        thirdLocation = new Location(world, secondLocation.getX(), secondLocation.getY(), firstLocation.getZ());
-        fourthLocation = new Location(world, firstLocation.getX(), secondLocation.getY(), secondLocation.getZ());
+        thirdLocation = new Location(firstLocation.getWorld(), secondLocation.getX(), secondLocation.getY(), firstLocation.getZ());
+        fourthLocation = new Location(firstLocation.getWorld(), firstLocation.getX(), secondLocation.getY(), secondLocation.getZ());
     }
 
-    public String locationToJson(Location location)
+    public int getAirOfClaim()
     {
-        LocationParser locationParser = new LocationParser(location.getX(), location.getY(), location.getZ());
-        Gson gson = new Gson();
-        return gson.toJson(locationParser);
-    }
-
-    public int getId() {
-        return id;
+        return (int) (((maxLocation.getX() - minLocation.getX()) + 1) * ((maxLocation.getZ() - minLocation.getZ()) + 1));
     }
 
     public UUID getOwner() {
         return owner;
-    }
-    public void setOwner(UUID owner) {
-        this.owner = owner;
     }
     public Location getFirstLocation() {
         return firstLocation;
@@ -106,20 +88,17 @@ public class Area {
     }
     public void setFirstLocation(Location firstLocation) {
         this.firstLocation = firstLocation;
-        if(secondLocation != null) SerializeMinMaxLocation();
+        if(secondLocation != null) initializeMinMaxLocation();
     }
     public void setSecondLocation(Location secondLocation) {
         this.secondLocation = secondLocation;
         initializeThirdFourthLocation();
-        SerializeMinMaxLocation();
+        initializeMinMaxLocation();
     }
     public Location getMinLocation() {
         return minLocation;
     }
     public Location getMaxLocation() {
         return maxLocation;
-    }
-    public World getWorld() {
-        return world;
     }
 }

@@ -11,10 +11,16 @@ import java.sql.SQLException;
 
 public class E_InitializePlayer implements Listener {
 
+    private SPLand plugin;
+
+    public E_InitializePlayer(SPLand plugin) {
+        this.plugin = plugin;
+    }
+
     @EventHandler (priority = EventPriority.HIGH)
     public void onJoin(PlayerJoinEvent e) throws SQLException, ClassNotFoundException {
-        if(SPLand.getInstance().getPlayerClaimStore().getPlayerClaimList().get(e.getPlayer().getUniqueId()) != null) return;
+        if(plugin.getPlayerClaimList().get(e.getPlayer().getUniqueId()) != null) return;
 
-        SPLand.getInstance().getPlayerClaimStore().getPlayerClaimList().put(e.getPlayer().getUniqueId(), new LandModel().getPlayerClaim(e.getPlayer()));
+        plugin.getPlayerClaimList().put(e.getPlayer().getUniqueId(), new LandModel().getPlayerClaim(e.getPlayer()));
     }
 }

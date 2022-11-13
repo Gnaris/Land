@@ -2,36 +2,35 @@ package Event.Controller;
 
 import Controller.Controller;
 import Entity.Land;
+import SPGroupManager.SPGroupManager;
 import SPLand.SPLand;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class LandCreationController extends Controller {
 
-    public LandCreationController(Player player) {
-        super(player);
+    private final SPGroupManager groupManager = (SPGroupManager) Bukkit.getServer().getPluginManager().getPlugin("SP_GroupManager");
+
+    public LandCreationController(Player player, SPLand plugin) {
+        super(player, plugin);
     }
 
     public boolean canStartToClaim(Location location)
     {
-        if(playerClaim.getNbLand() >= SPLand.getGroupStore().getPlayerGroupList().get(player.getUniqueId()).getRank().getNbMaxLand())
+        if(playerClaim.getNbLand() >= groupManager.getPlayerGroupList().get(player.getUniqueId()).getRank().getNbMaxLand())
         {
-            player.sendMessage("§cVous ne pouvez pas en avoir plus de " + SPLand.getGroupStore().getPlayerGroupList().get(player.getUniqueId()).getRank().getNbMaxLand() + " terrain(s)");
+            player.sendMessage("§cVous ne pouvez pas en avoir plus de " + groupManager.getPlayerGroupList().get(player.getUniqueId()).getRank().getNbMaxLand() + " terrain(s)");
             return false;
         }
-        if(landStore.getPlayerLandNotConfirmed(player).size() > 0)
+        if(plugin.getPlayerLandNotConfirmed(player).size() > 0)
         {
-            player.sendMessage("§cVous avez déjà un Land en cours ! Faites /land cancel pour l'annuler");
+            player.sendMessage("§cVous avez déjà un terrain en cours ! Faites /land cancel pour l'annuler");
             return false;
         }
-        if(landStore.getLandList().size() != 0 && landStore.getLandList().stream().anyMatch(land -> land.isInArea(location)))
+        if(plugin.getLandList().size() != 0 && plugin.getLandList().stream().anyMatch(land -> land.isInArea(location)))
         {
             player.sendMessage("§cVous ne pouvez pas claim une zone déjà claim");
-            return false;
-        }
-        if(landStore.getLandList().stream().anyMatch(land -> land.getMinLocation().distance(location) < 25 || land.getMaxLocation().distance(location) < 25))
-        {
-            player.sendMessage("§cVous êtes trop proche d'un terrain, veuillez vous éloigner");
             return false;
         }
         return true;
@@ -39,9 +38,9 @@ public class LandCreationController extends Controller {
 
     public boolean canClaimLand(Land newLand)
     {
-        if((newLand.getMaxLocation().getX() - newLand.getMinLocation().getX()) <= 5 || (newLand.getMaxLocation().getZ() - newLand.getMinLocation().getZ()) <= 5)
+        if((newLand.getMaxLocation().getX() - newLand.getMinLocation().getX()) <= 3 || (newLand.getMaxLocation().getZ() - newLand.getMinLocation().getZ()) <= 3)
         {
-            player.sendMessage("§cVotre terrain est trop petit");
+            player.sendMessage("§cVotre terrain est trop petit. Veuillez recommencez à 0");
             return false;
         }
 

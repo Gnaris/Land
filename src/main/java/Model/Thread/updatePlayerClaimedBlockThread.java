@@ -6,8 +6,8 @@ import java.sql.SQLException;
 
 public class updatePlayerClaimedBlockThread extends LandModel implements Runnable {
 
-    private String uuid;
-    private long claimedBlock;
+    private final String uuid;
+    private final long claimedBlock;
 
     public updatePlayerClaimedBlockThread(String uuid, long claimedBlock) {
         this.uuid = uuid;

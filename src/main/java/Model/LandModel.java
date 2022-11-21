@@ -1,178 +1,207 @@
 package Model;
 
 import Entity.Land;
-import Entity.LocationParser;
-import Entity.PlayerClaim;
-import Entity.PlayerLand;
-import SPLand.SPLand;
+import Entity.LandSecurity;
+import Utils.LocationParser;
+import Entity.Member;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.Location;
+import org.checkerframework.checker.units.qual.A;
 import sperias.gnaris.SPDatabase.SPDatabase;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class LandModel {
 
     private final SPDatabase database = (SPDatabase) Bukkit.getServer().getPluginManager().getPlugin("SP_Database");
 
 
-    public void insertNewLand(int playerID, String landName, Land land, boolean staffClaim) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO player_land VALUES (NULL, ?, ?, ?, ?, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, ?)");
-        stmt.setInt(1, playerID);
-        stmt.setString(2, landName);
-        stmt.setString(3, new LocationParser(land.getFirstLocation().getWorld().getName(), land.getFirstLocation().getX(), land.getFirstLocation().getY(), land.getFirstLocation().getZ()).locationToJson());
-        stmt.setString(4, new LocationParser(land.getSecondLocation().getWorld().getName(), land.getSecondLocation().getX(), land.getSecondLocation().getY(), land.getSecondLocation().getZ()).locationToJson());
-        stmt.setBoolean(5, staffClaim);
-        stmt.executeUpdate();
-    }
-
-    public List<Land> getAllLand(SPLand plugin) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("SELECT pl.id, p.uuid, pl.landName, pl.firstLocation, pl.secondLocation, pl.confirmed, pl.interact, pl.mobSpawn, pl.hitMob, pl.hitAnimal, pl.crops, pl.staffClaim FROM player_land pl JOIN player p ON p.id = pl.playerID");
+    public Map<UUID, Map<String, Land>> getAllLands() throws SQLException, ClassNotFoundException {
+        PreparedStatement stmt = database.getConnection().prepareStatement("SELECT * FROM land WHERE isSafezone = false");
         ResultSet result = stmt.executeQuery();
-        List<Land> landList = new ArrayList<>();
+        List<Land> lands = new ArrayList<>();
+        Map<UUID, Map<String, Land>> playerLands = new HashMap<>();
         Gson  gson = new Gson();
-        if(result != null)
+        while (result.next())
         {
-            while (result.next())
-            {
-                landList.add(new Land(
-                        result.getString("uuid"),
-                        gson.fromJson(result.getString("firstLocation"), LocationParser.class).toLocation(),
-                        gson.fromJson(result.getString("secondLocation"), LocationParser.class).toLocation(),
-                        plugin,
-                        result.getInt("id"),
-                        result.getString("landName"),
-                        result.getBoolean("confirmed"),
-                        result.getBoolean("interact"),
-                        result.getBoolean("mobSpawn"),
-                        result.getBoolean("hitMob"),
-                        result.getBoolean("hitAnimal"),
-                        result.getBoolean("crops"),
-                        result.getBoolean("staffClaim")
-                ));
-            }
+            lands.add(new Land(
+                    UUID.fromString(result.getString("owner")),
+                    result.getString("landName"),
+                    gson.fromJson(result.getString("minLocation"), LocationParser.class).toLocation(),
+                    gson.fromJson(result.getString("maxLocation"), LocationParser.class).toLocation(),
+                    result.getBoolean("isSafeZone"),
+                    result.getBoolean("isCity"),
+                    result.getBoolean("canInteract"),
+                    result.getBoolean("monsterCanSpawn"),
+                    result.getBoolean("canHitMonster"),
+                    result.getBoolean("canHitAnimal"),
+                    result.getBoolean("canCrops")
+            ));
+            playerLands.put(UUID.fromString(result.getString("owner")), new HashMap<>());
         }
-        return landList;
+        lands.forEach(land -> playerLands.get(land.getOwner()).put(land.getRegionName(), land));
+        return playerLands;
     }
 
-    public List<PlayerLand> getAllPlayerLand() throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("SELECT p.id, p.uuid, plo.landID FROM player_land_option plo JOIN player p ON p.id = plo.playerID");
+    public Map<String, Land> getAllSafeLand() throws SQLException, ClassNotFoundException {
+        PreparedStatement stmt = database.getConnection().prepareStatement("SELECT * FROM land WHERE isSafeZone = true");
         ResultSet result = stmt.executeQuery();
-        List<PlayerLand> playerList = new ArrayList<>();
-        while(result.next())
+        Map<String, Land> lands = new HashMap<>();
+        Gson  gson = new Gson();
+        while (result.next())
         {
-            playerList.add(new PlayerLand(
-                    result.getInt("id"),
-                    result.getInt("landID"),
-                    result.getString("uuid")
+            lands.put(result.getString("landName"), new Land(
+                    null,
+                    result.getString("landName"),
+                    gson.fromJson(result.getString("minLocation"), LocationParser.class).toLocation(),
+                    gson.fromJson(result.getString("maxLocation"), LocationParser.class).toLocation(),
+                    result.getBoolean("isSafeZone"),
+                    result.getBoolean("isCity"),
+                    result.getBoolean("canInteract"),
+                    result.getBoolean("monsterCanSpawn"),
+                    result.getBoolean("canHitMonster"),
+                    result.getBoolean("canHitAnimal"),
+                    result.getBoolean("canCrops")
             ));
         }
-        return playerList;
+        return lands;
     }
 
-    public PlayerClaim getPlayerClaim(Player player) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("SELECT id, nbClaimBlock, nbClaimedBlock, nbLand FROM player WHERE uuid = ?");
-        stmt.setString(1, player.getUniqueId().toString());
+    public void createLand(UUID owner, String landName, Location minLocation, Location maxLocation, boolean isSafeZone)
+    {
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO land (owner, landName, minLocation, maxLocation, isSafeZone) VALUES (?, ?, ?, ?, ?)");
+                stmt.setString(1, owner != null ? owner.toString() : null);
+                stmt.setString(2, landName);
+                stmt.setString(3, new LocationParser(minLocation).ToJson());
+                stmt.setString(4, new LocationParser(maxLocation).ToJson());
+                stmt.setBoolean(5, isSafeZone);
+                stmt.executeUpdate();
+            }catch (SQLException | ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
+    public void deleteLand(UUID uuid, String landName) {
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("DELETE FROM land WHERE owner = ? && landName = ?");
+                stmt.setString(1, uuid.toString());
+                stmt.setString(2, landName);
+                stmt.executeUpdate();
+            }catch (SQLException | ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
+    public void deleteSafeLand(String landName) {
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("DELETE FROM land WHERE landName = ? AND isSafeZone = true");
+                stmt.setString(1, landName);
+                stmt.executeUpdate();
+            }catch (SQLException | ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
+
+    public List<Member> getAllLandMembers() throws SQLException, ClassNotFoundException {
+        PreparedStatement stmt = database.getConnection().prepareStatement("SELECT c.landName, c.owner, m.member FROM land_member m JOIN land c ON c.id = m.landID WHERE c.isSafeZone = false");
         ResultSet result = stmt.executeQuery();
+        List<Member> landMembers = new ArrayList<>();
         while(result.next())
         {
-            return new PlayerClaim(
-                    player,
-                    result.getInt("id"),
-                    result.getLong("nbClaimBlock"),
-                    result.getLong("nbClaimedBlock"),
-                    result.getInt("nbLand"));
+            landMembers.add(new Member(
+                    result.getString("landName"),
+                    UUID.fromString(result.getString("owner")),
+                    UUID.fromString(result.getString("member"))
+            ));
         }
-        return null;
+        return landMembers;
     }
 
-    public void invitePlayerOnLand(int playerID, String landName, boolean staffClaim, String targetUUID) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO player_land_option VALUES (NULL, (SELECT id FROM player_land WHERE playerID = ? AND landName = ? AND staffClaim = ?), (SELECT id FROM player WHERE uuid = ?))");
-        stmt.setInt(1, playerID);
-        stmt.setString(2, landName);
-        stmt.setBoolean(3, staffClaim);
-        stmt.setString(4, targetUUID);
-        stmt.executeUpdate();
+    public List<Member> getAllSafeLandMembers() throws SQLException, ClassNotFoundException {
+        PreparedStatement stmt = database.getConnection().prepareStatement("SELECT c.landName, c.owner, m.member FROM land_member m JOIN land c ON c.id = m.landID WHERE c.isSafeZone = true");
+        ResultSet result = stmt.executeQuery();
+        List<Member> landMembers = new ArrayList<>();
+        while(result.next())
+        {
+            landMembers.add(new Member(
+                    result.getString("landName"),
+                    UUID.fromString(result.getString("owner")),
+                    UUID.fromString(result.getString("member"))
+            ));
+        }
+        return landMembers;
     }
 
-    public void removePlayerOnLand(int playerID, String landName, boolean staffClaim, String targetUUID) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("DELETE FROM player_land_option WHERE landID = (SELECT id FROM player_land WHERE playerID = ? AND landName = ? AND staffClaim = ?) AND playerID = (SELECT id FROM player WHERE uuid = ?)");
-        stmt.setInt(1, playerID);
-        stmt.setString(2, landName);
-        stmt.setBoolean(3, staffClaim);
-        stmt.setString(4, targetUUID);
-        stmt.executeUpdate();
+    public void addMember(UUID owner, UUID member)
+    {
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO land_member (owner, member) VALUES (?, ?)");
+                stmt.setString(1, owner.toString());
+                stmt.setString(2, member.toString());
+                stmt.executeUpdate();
+            }catch (SQLException | ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }).start();
+
     }
 
-    public void updatePlayerClaimBlock(String uuid, long claimBlock) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE player SET nbClaimBlock = ? WHERE uuid = ?");
-        stmt.setLong(1, claimBlock);
-        stmt.setString(2, uuid);
-        stmt.executeUpdate();
+    public void removeMember(UUID owner, UUID member)
+    {
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("DELETE FROM land_member WHERE owner = ? AND member = ?");
+                stmt.setString(1, owner.toString());
+                stmt.setString(2, member.toString());
+                stmt.executeUpdate();
+            }catch (SQLException | ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 
-    public void updatePlayerClaimedBlock(String uuid, long claimedBlock) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE player SET nbClaimedBlock = ? WHERE uuid = ?");
-        stmt.setLong(1, claimedBlock);
-        stmt.setString(2, uuid);
-        stmt.executeUpdate();
+    public void setLandSecurity(UUID owner, LandSecurity landSecurity, boolean value){
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET " + landSecurity.getName() +" = ? WHERE owner = ? AND isSafeZone = false");
+                stmt.setBoolean(1, value);
+                stmt.setString(2, owner.toString());
+                stmt.executeUpdate();
+            }catch (SQLException | ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 
-    public void deleteLand(int playerID, String landName, boolean staffClaim) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("DELETE FROM player_land WHERE playerID = ? AND landName = ? AND staffClaim = ?");
-        stmt.setInt(1, playerID);
-        stmt.setString(2, landName);
-        stmt.setBoolean(3, staffClaim);
-        stmt.executeUpdate();
-    }
-
-    public void setInteractLand(boolean response, int playerID, String landName, boolean staffClaim) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE player_land SET interact = ? WHERE playerID = ? AND landName = ? AND staffClaim = ?");
-        stmt.setBoolean(1, response);
-        stmt.setInt(2, playerID);
-        stmt.setString(3, landName);
-        stmt.setBoolean(4, staffClaim);
-        stmt.executeUpdate();
-    }
-
-    public void setMobSpawnLand(boolean response, int playerID, String landName, boolean staffClaim) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE player_land SET mobSpawn = ? WHERE playerID = ? AND landName = ? AND staffClaim = ?");
-        stmt.setBoolean(1, response);
-        stmt.setInt(2, playerID);
-        stmt.setString(3, landName);
-        stmt.setBoolean(4, staffClaim);
-        stmt.executeUpdate();
-    }
-
-    public void setHitMobLand(boolean response, int playerID, String landName, boolean staffClaim) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE player_land SET hitMob = ? WHERE playerID = ? AND landName = ? AND staffClaim = ?");
-        stmt.setBoolean(1, response);
-        stmt.setInt(2, playerID);
-        stmt.setString(3, landName);
-        stmt.setBoolean(4, staffClaim);
-        stmt.executeUpdate();
-    }
-
-    public void setHitAnimalLand(boolean response, int playerID, String landName, boolean staffClaim) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE player_land SET hitAnimal = ? WHERE playerID = ? AND landName = ? AND staffClaim = ?");
-        stmt.setBoolean(1, response);
-        stmt.setInt(2, playerID);
-        stmt.setString(3, landName);
-        stmt.setBoolean(4, staffClaim);
-        stmt.executeUpdate();
-    }
-
-    public void setCropsLand(boolean response, int playerID, String landName, boolean staffClaim) throws SQLException, ClassNotFoundException {
-        PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE player_land SET crops = ? WHERE playerID = ? AND landName = ? AND staffClaim = ?");
-        stmt.setBoolean(1, response);
-        stmt.setInt(2, playerID);
-        stmt.setString(3, landName);
-        stmt.setBoolean(4, staffClaim);
-        stmt.executeUpdate();
+    public void setSafeLandSecurity(String landName, LandSecurity landSecurity, boolean value){
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET " + landSecurity.getName() +" = ? WHERE landName = ? AND isSafeZone = true");
+                stmt.setBoolean(1, value);
+                stmt.setString(2, landName);
+                stmt.executeUpdate();
+            }catch (SQLException | ClassNotFoundException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 }

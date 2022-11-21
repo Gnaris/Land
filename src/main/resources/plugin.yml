@@ -1,9 +1,9 @@
-name: SP_Claim
-version: '${project.version}'
-main: SPLand.SPLand
+name: Land
+version: 1.0
+main: Land.LandMain
 api-version: 1.19
 authors: [ Gnaris ]
-depend: [SP_Wallet, SP_GroupManager, SP_Database]
+depend: [SP_Database, GroupManager, Economy]
 commands:
   spland:
   land:

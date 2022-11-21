@@ -1,126 +1,119 @@
 package Entity;
 
-import SPLand.SPLand;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
-public class Land extends Area implements Runnable{
+public class Land extends Region
+{
+    private boolean isCity;
+    private final LandSecurity isSafeZone = LandSecurity.SAFECITY;
+    private final LandSecurity canInteract = LandSecurity.INTERACT;
+    private final LandSecurity monsterCanSpawn = LandSecurity.MONSTER_SPAWN;
+    private final LandSecurity canHitMonster = LandSecurity.HIT_MONSTER;
+    private final LandSecurity canHitAnimal = LandSecurity.HIT_ANIMAL;
+    private final LandSecurity canCrops = LandSecurity.HIT_ANIMAL;
+    private Location firstLocation;
+    private Location secondLocation;
 
-    private int landID;
-    private String landName;
-    private final Map<UUID, PlayerLand> playerList = new HashMap<>();
-    private int schedulerID = 0;
+    public Land(UUID owner, String landName) {
+        super(owner, landName);
+    }
 
-    private boolean staffClaim = false;
+    public Land(UUID owner, String landName, Location minLocation, Location maxLocation, boolean isSafeZone, boolean isCity, boolean canInteract, boolean monsterCanSpawn, boolean canHitMonster, boolean canHitAnimal, boolean canCrops) {
+        super(owner, landName, minLocation, maxLocation);
+        this.isCity = isCity;
+        this.isSafeZone.setValue(isSafeZone);
+        this.canInteract.setValue(canInteract);
+        this.monsterCanSpawn.setValue(monsterCanSpawn);
+        this.canHitMonster.setValue(canHitMonster);
+        this.canHitAnimal.setValue(canHitAnimal);
+        this.canCrops.setValue(canCrops);
+    }
 
-    private boolean confirmed = false;
-    private boolean interact = false;
-    private boolean mobSpawn = true;
-    private boolean hitMob = false;
-    private boolean hitAnimal = false;
-    private boolean crops = false;
+    public boolean isCity() {
+        return isCity;
+    }
 
-    public Land(UUID uuid)
+    public boolean isSafeZone() {
+        return isSafeZone.getValue();
+    }
+
+    public boolean canInteract() {
+        return canInteract.getValue();
+    }
+
+    public boolean monsterCanSpawn() {
+        return monsterCanSpawn.getValue();
+    }
+
+    public boolean canHitMonster() {
+        return canHitMonster.getValue();
+    }
+
+    public boolean canHitAnimal() {
+        return canHitAnimal.getValue();
+    }
+
+    public boolean canCrops() {
+        return canCrops.getValue();
+    }
+
+    public void setInteract(boolean value) {
+        this.canInteract.setValue(value);
+        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'interaction avec les blocs en " + value);
+    }
+
+    public void setMonsterSpawn(boolean value) {
+        this.monsterCanSpawn.setValue(value);
+        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'apparaition des monstres en " + value);
+    }
+
+    public void setHitMonster(boolean value) {
+        this.canHitMonster.setValue(value);
+        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'hostilité contre les monstres en " + value);
+    }
+
+    public void setHitAnimal(boolean value) {
+        this.canHitAnimal.setValue(value);
+        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'hostilité contre les animaux en " + value);
+    }
+
+    public void setCrops(boolean value) {
+        this.canCrops.setValue(value);
+        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état sur la récolte en " + value);
+    }
+
+    public Location getFirstLocation() {
+        return firstLocation;
+    }
+
+    public void setFirstLocation(Location firstLocation) {
+        this.firstLocation = firstLocation;
+    }
+
+    public Location getSecondLocation() {
+        return secondLocation;
+    }
+
+    public void setSecondLocation(Location secondLocation) {
+        this.secondLocation = secondLocation;
+    }
+
+    public void buildLandLocation()
     {
-        super(uuid);
-    }
-
-    public Land(String owner, Location firstLocation, Location secondLocation, SPLand plugin, int landID, String landName, boolean confirmed, boolean interact, boolean mobSpawn, boolean hitMob, boolean hitAnimal, boolean crops, boolean staffClaim) {
-        super(owner, firstLocation, secondLocation, plugin);
-        this.landID = landID;
-        this.landName = landName;
-        this.confirmed = confirmed;
-        this.interact = interact;
-        this.mobSpawn = mobSpawn;
-        this.hitMob = hitMob;
-        this.hitAnimal = hitAnimal;
-        this.crops = crops;
-        this.staffClaim = staffClaim;
-    }
-
-    @Override
-    public void run() {
-        if(firstLocation == null || secondLocation == null)
-        {
-            hideArea();
-            firstLocation = null;
-            secondLocation = null;
-            Objects.requireNonNull(Bukkit.getPlayer(this.owner)).sendMessage("§cVous n'avez pas selectionner tout les points");
-        }
-        if(secondLocation != null && !confirmed)
-        {
-            hideArea();
-            plugin.getLandList().remove(this);
-            Objects.requireNonNull(Bukkit.getPlayer(this.owner)).sendMessage("§cVous n'avez pas pu confirmer votre création de terrain");
-        }
-    }
-
-    public int getLandID() {
-        return landID;
-    }
-    public void setLandID(int landID) {
-        this.landID = landID;
-    }
-    public boolean isConfirmed() {
-        return confirmed;
-    }
-    public void setSchedulerID(int schedulerID) {
-        this.schedulerID = schedulerID;
-    }
-    public int getSchedulerID() {
-        return schedulerID;
-    }
-    public String getLandName() {
-        return landName;
-    }
-    public boolean isInteract() {
-        return interact;
-    }
-    public void setInteract(boolean interact) {
-        this.interact = interact;
-    }
-    public Map<UUID, PlayerLand> getPlayerList() {
-        return playerList;
-    }
-    public void setLandName(String landName) {
-        this.landName = landName;
-    }
-    public void setConfirmed(boolean confirmed) {
-        this.confirmed = confirmed;
-    }
-    public boolean isStaffClaim() {
-        return staffClaim;
-    }
-    public void setStaffClaim(boolean staffClaim) {
-        this.staffClaim = staffClaim;
-    }
-    public boolean isMobSpawn() {
-        return mobSpawn;
-    }
-    public void setMobSpawn(boolean mobSpawn) {
-        this.mobSpawn = mobSpawn;
-    }
-    public boolean isHitMob() {
-        return hitMob;
-    }
-    public void setHitMob(boolean hitMob) {
-        this.hitMob = hitMob;
-    }
-    public boolean isHitAnimal() {
-        return hitAnimal;
-    }
-    public void setHitAnimal(boolean hitAnimal) {
-        this.hitAnimal = hitAnimal;
-    }
-    public boolean isCrops() {
-        return crops;
-    }
-    public void setCrops(boolean crops) {
-        this.crops = crops;
+        lastMinLocation = this.minLocation;
+        lastMaxLocation = this.maxLocation;
+        this.minLocation = new Location(firstLocation.getWorld(),
+                (int) Math.min(this.firstLocation.getX(), this.secondLocation.getX()),
+                (int) Math.min(this.firstLocation.getY(), this.secondLocation.getY()),
+                (int) Math.min(this.firstLocation.getZ(), this.secondLocation.getZ())
+        );
+        this.maxLocation = new Location(firstLocation.getWorld(),
+                (int) Math.max(this.firstLocation.getX(), this.secondLocation.getX()),
+                (int) Math.max(this.firstLocation.getY(), this.secondLocation.getY()),
+                (int) Math.max(this.firstLocation.getZ(), this.secondLocation.getZ())
+        );
     }
 }

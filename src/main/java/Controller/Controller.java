@@ -1,54 +1,26 @@
 package Controller;
 
 import Entity.Land;
-import Entity.PlayerClaim;
-import SPLand.SPLand;
-import SPWallet.SPWallet;
-import org.bukkit.Bukkit;
+import Entity.LandSecurity;
+import Model.LandModel;
+import Land.LandMain;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import java.util.stream.Collectors;
 
 public class Controller{
 
     protected Player player;
-    protected PlayerClaim playerClaim;
-    protected SPLand plugin;
-    protected final SPWallet wallet = (SPWallet) Bukkit.getServer().getPluginManager().getPlugin("SP_Wallet");
+    protected LandMain plugin;
+    protected LandModel landModel = new LandModel();
 
-    public Controller(Player player, SPLand plugin) {
+    public Controller(Player player, LandMain plugin) {
         this.player = player;
         this.plugin = plugin;
-        playerClaim = plugin.getPlayerClaimList().get(player.getUniqueId());
     }
 
-    public boolean isLongFormat(String amount)
-    {
-        try{
-            Long.parseLong(amount);
-        }catch (NumberFormatException e)
-        {
-            player.sendMessage("§c" + amount + " n'est pas un montant valide");
-            return false;
-        }
-        if(Long.parseLong(amount) < 0)
-        {
-            player.sendMessage("§cLe montant ne pas être négatif");
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean claimInProgress()
-    {
-        if(plugin.getPlayerLandNotConfirmed(player).size() == 0)
-        {
-            player.sendMessage("§cTu n'as pas de claim en cours !");
-            return false;
-        }
-        return true;
-    }
-
-    public boolean checkTarget(Player target)
+    public boolean targetExist(Player target)
     {
         if(target == null)
         {
@@ -64,29 +36,30 @@ public class Controller{
         return true;
     }
 
-    public boolean existingLand(String name)
+    public boolean hasLand(String landName)
     {
-        Land playerLand = plugin.getPlayerLandByName(player, name);
-        if(playerLand == null)
+        if(plugin.getLands().containsKey(player.getUniqueId()))
         {
-            player.sendMessage("§cCe terrain n'existe pas");
+            if(!plugin.getLands().get(player.getUniqueId()).containsKey(landName))
+            {
+                player.sendMessage("§cVous ne possédez pas de ville au nom de " + landName);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean hasSafeLand(String landName)
+    {
+        if(!plugin.getSafeLands().containsKey(landName))
+        {
+            player.sendMessage("§cCette ville n'existe pas");
             return false;
         }
         return true;
     }
 
-    public boolean existingStaffLand(String name)
-    {
-        Land staffLand = plugin.getStaffLandByName(name);
-        if(staffLand == null)
-        {
-            player.sendMessage("§cCe terrain n'existe pas");
-            return false;
-        }
-        return true;
-    }
-
-    public boolean havePermission(String permission)
+    public boolean hasPermission(String permission)
     {
         if(!player.hasPermission(permission) && !player.isOp())
         {
@@ -96,9 +69,9 @@ public class Controller{
         return true;
     }
 
-    protected boolean canHandleLandParameter(String name, String value)
+    public boolean canHandleLandSecurity(String landName, LandSecurity landSecurity, String value)
     {
-        if(!this.existingLand(name)) return false;
+        if(!this.hasLand(landName)) return false;
 
         if(!value.equalsIgnoreCase("on") && !value.equalsIgnoreCase("off"))
         {
@@ -106,12 +79,13 @@ public class Controller{
             return false;
         }
 
+        landModel.setLandSecurity(player.getUniqueId(), landSecurity, value.equalsIgnoreCase("on"));
         return true;
     }
 
-    protected boolean canHandleStaffLandParameter(String name, String value)
+    public boolean canHandleSafeLandSecurity(String landName, LandSecurity landSecurity, String value)
     {
-        if(!this.existingStaffLand(name)) return false;
+        if(!this.hasSafeLand(landName)) return false;
 
         if(!value.equalsIgnoreCase("on") && !value.equalsIgnoreCase("off"))
         {
@@ -119,6 +93,55 @@ public class Controller{
             return false;
         }
 
+        landModel.setSafeLandSecurity(landName, landSecurity, value.equalsIgnoreCase("on"));
+        return true;
+    }
+
+    protected boolean positionOnOtherLand(String landName, Location location)
+    {
+        Land onLand = null;
+        if(plugin.getAllLand().stream().anyMatch(l -> l.isInRegion(location)))
+        {
+            onLand = plugin.getAllLand().stream().filter(l -> l.isInRegion(location)).collect(Collectors.toList()).get(0);
+        }
+        if(onLand != null)
+        {
+            if(onLand.isSafeZone() && !onLand.getRegionName().equalsIgnoreCase(landName))
+            {
+                player.sendMessage("§cVous ne pouvez pas claim les zones protégées");
+                return false;
+            }
+            if(!onLand.isSafeZone() && !onLand.getOwner().equals(player.getUniqueId()))
+            {
+                player.sendMessage("§cVous n'êtes pas le propriétaire de cette zone");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected boolean cityContainOtherCity(Land land)
+    {
+        Land onLand = null;
+        if(plugin.getAllLand().stream().anyMatch(l -> land.isInRegion(l.getMinLocation()) || land.isInRegion(l.getMaxLocation())))
+        {
+            onLand = plugin.getAllLand().stream()
+                    .filter(l -> land.isInRegion(l.getMinLocation()) || land.isInRegion(l.getMaxLocation()))
+                    .collect(Collectors.toList()).get(0);
+        }
+        if(onLand != null)
+        {
+            if(onLand.isSafeZone() && !onLand.getRegionName().equalsIgnoreCase(land.getRegionName()))
+            {
+                player.sendMessage("§cVous ne pouvez pas claim les zones protégées");
+                return false;
+            }
+            if(!onLand.isSafeZone() && !onLand.getOwner().equals(player.getUniqueId()))
+            {
+                player.sendMessage("§cVous ne pouvez par surclaim une zone sauf si vous êtes le propriétaire");
+                return false;
+            }
+        }
         return true;
     }
 }

@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>SP_Claim</groupId>
-    <artifactId>SP_Claim</artifactId>
+    <groupId>SP_City</groupId>
+    <artifactId>SP_City</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>SP_Claim</name>
+    <name>SP_City</name>
 
     <properties>
         <java.version>1.8</java.version>
@@ -39,7 +39,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputFile>C:\Users\Admin\Desktop\spigot\plugins\SP_Claim.jar</outputFile>
+                            <outputFile>C:\Users\Admin\Bureau\spigot\plugins\SP_City.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -72,20 +72,20 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>SP_Wallet</groupId>
-            <artifactId>SP_Wallet</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>SP_GroupManager</groupId>
-            <artifactId>SP_GroupManager</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>SP_Database</groupId>
             <artifactId>SP_Database</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>Economy</groupId>
+            <artifactId>Economy</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>GroupManager</groupId>
+            <artifactId>GroupManager</artifactId>
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>

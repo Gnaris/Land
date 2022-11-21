@@ -1,4 +1,4 @@
-package Entity;
+package Utils;
 
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
@@ -11,18 +11,18 @@ public class LocationParser {
     private double y;
     private double z;
 
-    public LocationParser(String world, double x, double y, double z) {
-        this.world = world;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public LocationParser(Location location) {
+        this.world = location.getWorld().getName();
+        this.x = location.getX();
+        this.y = location.getY();
+        this.z = location.getZ();
     }
 
     public Location toLocation()
     {
         return new Location(Bukkit.getWorld(world), this.x, this.y, this.z);
     }
-    public String locationToJson()
+    public String ToJson()
     {
         Gson gson = new Gson();
         return gson.toJson(this);

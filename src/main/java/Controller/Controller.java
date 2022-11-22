@@ -116,6 +116,9 @@ public class Controller{
                 player.sendMessage("§cVous n'êtes pas le propriétaire de cette zone");
                 return false;
             }
+
+            player.sendMessage("Vous ne pouvez pas claim cette zone");
+            return false;
         }
         return true;
     }
@@ -141,6 +144,9 @@ public class Controller{
                 player.sendMessage("§cVous ne pouvez par surclaim une zone sauf si vous êtes le propriétaire");
                 return false;
             }
+
+            player.sendMessage("§aVous ne pouvez pas claim cette zone");
+            return false;
         }
         return true;
     }

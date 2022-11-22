@@ -18,7 +18,6 @@ public final class LandMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // ! VERIFIER SI X OU Z SONT EGAL
         // ! VERIFIER SI UN CLAIM EXISTE DEJA DANS LA ZONE
         // ! METTRE UN SPAWN POUR CHAQUE CLAIM
         saveDefaultConfig();

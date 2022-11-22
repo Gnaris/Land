@@ -25,7 +25,7 @@ public class LandController extends Controller{
                 player.sendMessage("§cLe nom de cette ville existe déjà");
                 return false;
             }
-            GroupManager group = (GroupManager) Bukkit.getServer().getPluginManager().getPlugin("SP_GroupManager");
+            GroupManager group = (GroupManager) Bukkit.getServer().getPluginManager().getPlugin("GroupManager");
             if(plugin.getLands().get(player.getUniqueId()).size() > group.getPlayerGroups().get(player.getUniqueId()).getRank().getNbLand())
             {
                 player.sendMessage("§cVous ne pouvez pas avour plus de " + group.getPlayerGroups().get(player.getUniqueId()).getRank().getNbLand());

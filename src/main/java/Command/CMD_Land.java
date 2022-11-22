@@ -93,17 +93,17 @@ public class CMD_Land implements CommandExecutor {
                     return true;
                 }
 
-                if(args[0].equalsIgnoreCase("setfirstlocation"))
+                if(args[0].equalsIgnoreCase("setfirstposition"))
                 {
                     if(!landController.canSetFirstLocationOnLand(landName, player.getLocation())) return false;
 
                     plugin.getLands().get(player.getUniqueId()).get(landName).setFirstLocation(player.getLocation());
 
-                    player.sendMessage("§aPremière positon sauvegardée, /land setsecondlocation " + landName);
+                    player.sendMessage("§aPremière positon sauvegardée, /land setsecondposition " + landName);
 
                     return true;
                 }
-                if(args[0].equalsIgnoreCase("setsecondlocation"))
+                if(args[0].equalsIgnoreCase("setlastposition"))
                 {
                     if(!landController.canSetSecondLocationOnCity(landName, player.getLocation())) return false;
 
@@ -132,9 +132,9 @@ public class CMD_Land implements CommandExecutor {
                     if(!landController.canCreateCity(landName)) return false;
 
                     plugin.getLands().computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
-                    plugin.getLands().get(player.getUniqueId()).put(landName, new Land(player.getUniqueId(), landName));
+                    plugin.getLands().get(player.getUniqueId()).put(landName, new Land(player.getUniqueId(), landName, false));
 
-                    player.sendMessage("§cFélicitation le terrain " + landName + " a bien été crée ! \n" +
+                    player.sendMessage("§aFélicitation le terrain " + landName + " a bien été crée ! \n" +
                             " Vous avez jusqu'au prochain redemarrage pour completer votre terrain ou il sera supprimé");
                     return true;
                 }

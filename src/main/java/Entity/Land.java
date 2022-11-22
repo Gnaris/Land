@@ -8,7 +8,7 @@ import java.util.UUID;
 public class Land extends Region
 {
     private boolean isCity;
-    private final LandSecurity isSafeZone = LandSecurity.SAFECITY;
+    private final boolean isSafeZone;
     private final LandSecurity canInteract = LandSecurity.INTERACT;
     private final LandSecurity monsterCanSpawn = LandSecurity.MONSTER_SPAWN;
     private final LandSecurity canHitMonster = LandSecurity.HIT_MONSTER;
@@ -17,14 +17,15 @@ public class Land extends Region
     private Location firstLocation;
     private Location secondLocation;
 
-    public Land(UUID owner, String landName) {
+    public Land(UUID owner, String landName, boolean isSafeZone) {
         super(owner, landName);
+        this.isSafeZone = isSafeZone;
     }
 
     public Land(UUID owner, String landName, Location minLocation, Location maxLocation, boolean isSafeZone, boolean isCity, boolean canInteract, boolean monsterCanSpawn, boolean canHitMonster, boolean canHitAnimal, boolean canCrops) {
         super(owner, landName, minLocation, maxLocation);
         this.isCity = isCity;
-        this.isSafeZone.setValue(isSafeZone);
+        this.isSafeZone = isSafeZone;
         this.canInteract.setValue(canInteract);
         this.monsterCanSpawn.setValue(monsterCanSpawn);
         this.canHitMonster.setValue(canHitMonster);
@@ -37,7 +38,7 @@ public class Land extends Region
     }
 
     public boolean isSafeZone() {
-        return isSafeZone.getValue();
+        return isSafeZone;
     }
 
     public boolean canInteract() {

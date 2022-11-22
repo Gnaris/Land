@@ -44,7 +44,7 @@ public class SPLandController extends Controller {
         Land land = plugin.getSafeLands().get(landName);
         if(land.getFirstLocation() == null)
         {
-            player.sendMessage("§aPremière position inexistant");
+            player.sendMessage("§cPremière position inexistant");
             return false;
         }
         if(secondLocation.getWorld() != land.getFirstLocation().getWorld())
@@ -61,7 +61,7 @@ public class SPLandController extends Controller {
         Land land = plugin.getSafeLands().get(landName);
         if(land.getFirstLocation() == null || land.getSecondLocation() == null)
         {
-            player.sendMessage("§aVous n'avez pas sauvegarder tout les positions de la ville");
+            player.sendMessage("§cVous n'avez pas sauvegarder tout les positions de la ville");
             return false;
         }
         land.buildLandLocation();

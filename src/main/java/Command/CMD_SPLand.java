@@ -42,23 +42,23 @@ public class CMD_SPLand implements CommandExecutor{
         if(args.length == 2)
         {
             String landName = args[1];
-            if(args[0].equalsIgnoreCase("setfirstlocation"))
+            if(args[0].equalsIgnoreCase("setfirstposition"))
             {
                 if(!landController.canSetFirstLocationOnCity(landName, player.getLocation())) return false;
 
                 plugin.getSafeLands().get(landName).setFirstLocation(player.getLocation());
 
-                player.sendMessage("§aPremière positon sauvegardée, /spcity setsecondlocation " + landName );
+                player.sendMessage("§aPremière positon sauvegardée, /spland setlastpositon " + landName );
 
                 return true;
             }
-            if(args[0].equalsIgnoreCase("setsecondlocation"))
+            if(args[0].equalsIgnoreCase("setlastposition"))
             {
                 if(!landController.canSetSecondLocationOnCity(landName, player.getLocation())) return false;
 
                 plugin.getSafeLands().get(landName).setSecondLocation(player.getLocation());
 
-                player.sendMessage("§aPour valider votre ville, faites /spcity confirm " + landName);
+                player.sendMessage("§aPour valider votre ville, faites /spland confirm " + landName);
 
                 return true;
             }
@@ -66,16 +66,16 @@ public class CMD_SPLand implements CommandExecutor{
             {
                 if(!landController.canConfirmCity(landName)) return false;
 
-                player.sendMessage("§aLa région de votre ville a bien été sauvegardée");
+                player.sendMessage("§aLa région du " + landName + " a bien été enregistrée");
                 return true;
             }
             if(args[0].equalsIgnoreCase("create"))
             {
                 if(!landController.canCreateLand(landName)) return false;
 
-                plugin.getSafeLands().put(landName, new Land(player.getUniqueId(), landName));
+                plugin.getSafeLands().put(landName, new Land(player.getUniqueId(), landName, true));
 
-                player.sendMessage("§cFélicitation le terrain " + landName + " a bien été crée ! \n" +
+                player.sendMessage("§aFélicitation le terrain " + landName + " a bien été crée ! \n" +
                         " Vous avez jusqu'au prochain redemarrage pour completer votre terrain ou il sera supprimé");
                 return true;
             }

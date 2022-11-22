@@ -6,8 +6,7 @@ public enum LandSecurity {
     MONSTER_SPAWN("monsterCanSpawn", true),
     HIT_MONSTER("canHitMonster", false),
     HIT_ANIMAL("canHitAnimal", false),
-    CROPS("canCrops", false),
-    SAFECITY("isSafeCity", false);
+    CROPS("canCrops", false);
 
     private String name;
     private boolean value;

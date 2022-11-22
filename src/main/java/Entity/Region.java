@@ -30,7 +30,7 @@ public class Region{
     }
     public boolean isInRegion(Location location)
     {
-        return (location.getX() >= minLocation.getX() && location.getX() <= maxLocation.getX() && location.getZ() >= minLocation.getZ() && location.getZ() <= maxLocation.getZ());
+        return ((int)location.getX() >= minLocation.getX() && (int)location.getX() <= maxLocation.getX() && (int)location.getZ() >= minLocation.getZ() && (int)location.getZ() <= maxLocation.getZ());
     }
     public void showArea()
     {

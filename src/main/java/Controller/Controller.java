@@ -111,42 +111,42 @@ public class Controller{
                 player.sendMessage("§cVous ne pouvez pas claim les zones protégées");
                 return false;
             }
-            if(!onLand.isSafeZone() && !onLand.getOwner().equals(player.getUniqueId()))
+            if(!onLand.isSafeZone() && (!onLand.getOwner().equals(player.getUniqueId()) || !onLand.getRegionName().equalsIgnoreCase(landName)))
             {
-                player.sendMessage("§cVous n'êtes pas le propriétaire de cette zone");
+                player.sendMessage("§cVous n'êtes pas le propriétaire de cette zone ou cette zone est déjà claim par quelqu'un");
                 return false;
             }
-
-            player.sendMessage("Vous ne pouvez pas claim cette zone");
-            return false;
         }
         return true;
     }
 
     protected boolean cityContainOtherCity(Land land)
     {
-        Land onLand = null;
-        if(plugin.getAllLand().stream().anyMatch(l -> land.isInRegion(l.getMinLocation()) || land.isInRegion(l.getMaxLocation())))
-        {
-            onLand = plugin.getAllLand().stream()
-                    .filter(l -> land.isInRegion(l.getMinLocation()) || land.isInRegion(l.getMaxLocation()))
-                    .collect(Collectors.toList()).get(0);
-        }
+        Land onLand = plugin.getAllLand().stream()
+                .filter(l ->
+                        (land.isInRegion(l.getMinLocation()) || land.isInRegion(l.getMaxLocation())) &&
+                        ((!land.getRegionName().equalsIgnoreCase(l.getRegionName()) && l.getOwner().equals(player.getUniqueId())) ||
+                        !l.getOwner().equals(player.getUniqueId()) ||
+                        l.isSafeZone())
+                )
+                .findFirst().orElse(null);
         if(onLand != null)
         {
             if(onLand.isSafeZone() && !onLand.getRegionName().equalsIgnoreCase(land.getRegionName()))
             {
-                player.sendMessage("§cVous ne pouvez pas claim les zones protégées");
+                player.sendMessage("§cVous ne pouvez pas claim les zones protégées " + onLand.getRegionName());
                 return false;
             }
-            if(!onLand.isSafeZone() && !onLand.getOwner().equals(player.getUniqueId()))
+            if(!onLand.isSafeZone() && !onLand.getRegionName().equalsIgnoreCase(land.getRegionName()) && onLand.getOwner().equals(player.getUniqueId()))
             {
-                player.sendMessage("§cVous ne pouvez par surclaim une zone sauf si vous êtes le propriétaire");
+                player.sendMessage("§cVous ne pouvez par surclaim une de vos terrain");
                 return false;
             }
-
-            player.sendMessage("§aVous ne pouvez pas claim cette zone");
-            return false;
+            if(!onLand.isSafeZone() && !onLand.getRegionName().equalsIgnoreCase(land.getRegionName()) && !onLand.getOwner().equals(player.getUniqueId()))
+            {
+                player.sendMessage("§cVous ne pouvez par surclaim un terrain");
+                return false;
+            }
         }
         return true;
     }

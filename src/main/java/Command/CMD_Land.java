@@ -30,6 +30,22 @@ public class CMD_Land implements CommandExecutor {
 
             LandController landController = new LandController(player, plugin);
 
+            if(args.length == 1)
+            {
+                if(args[0].equalsIgnoreCase("list"))
+                {
+                    if(!landController.canListLand()) return false;
+                    StringBuilder lands = new StringBuilder();
+                    plugin.getLands().get(player.getUniqueId()).values().forEach(land -> lands.append(land.getRegionName()).append(" "));
+                    if(plugin.getLandProgress().get(player.getUniqueId()) != null)
+                    {
+                        lands.append(plugin.getLandProgress().get(player.getUniqueId()).getRegionName()).append(" : §c§lOFF").append(" ");
+                    }
+                    player.sendMessage("§cVoici la liste de vos terrains : " + lands.toString());
+                    return true;
+                }
+            }
+
             if(args.length == 2)
             {
                 String landName = args[1];
@@ -54,10 +70,8 @@ public class CMD_Land implements CommandExecutor {
 
                 if(args[0].equalsIgnoreCase("delete"))
                 {
-                    if(!landController.canDeleteCity(landName)) return false;
-
+                    if(!landController.canDeleteLand(landName)) return false;
                     plugin.getLands().get(player.getUniqueId()).remove(landName);
-
                     player.sendMessage("§aLa ville " + landName + " a été supprimée");
                     return true;
                 }
@@ -65,19 +79,7 @@ public class CMD_Land implements CommandExecutor {
                 if(args[0].equalsIgnoreCase("info"))
                 {
                     if(!landController.hasLand(landName)) return false;
-
                     Land land = plugin.getLands().get(player.getUniqueId()).get(landName);
-
-                    player.sendMessage("Nom : " + land.getRegionName());
-                    player.sendMessage("");
-                    if((land.getFirstLocation() != null && land.getSecondLocation() != null) || (land.getMinLocation() != null || land.getFirstLocation() != null))
-                    {
-                        player.sendMessage("Claim : ");
-                        player.sendMessage("Position A : X :" + land.getMinLocation().getX() + " Z : " + land.getMinLocation().getZ());
-                        player.sendMessage("Position B : X :" + land.getMaxLocation().getX() + " Z : " + land.getMaxLocation().getZ());
-                    }
-                    player.sendMessage("");
-                    player.sendMessage("Liste des membres dans votre villes :");
                     StringBuilder members = new StringBuilder();
                     if(land.getMembers().size() > 0)
                     {
@@ -86,54 +88,47 @@ public class CMD_Land implements CommandExecutor {
                                 .forEach(member -> members.append(Bukkit.getPlayer(member).getName()).append(" "));
                         player.sendMessage(members.toString());
                     }
-                    else
-                    {
-                        player.sendMessage("Tu es tout seul :(");
-                    }
+                    player.sendMessage("Nom : " + land.getRegionName() + "\n" +
+                            "Claim : \n" +
+                            "Position 1 : X : " + land.getMinLocation().getX() + " Z : " + land.getMinLocation().getZ() + "\n" +
+                            "Position 2 : X : " + land.getMaxLocation().getX() + " Z : " + land.getMaxLocation().getZ() + "\n" +
+                            "Liste des membres dans votre villes :" + members.toString()
+                    );
                     return true;
                 }
 
-                if(args[0].equalsIgnoreCase("setfirstposition"))
+                if(args[0].equalsIgnoreCase("setposition1") || args[0].equalsIgnoreCase("setpos1"))
                 {
-                    if(!landController.canSetFirstLocationOnLand(landName, player.getLocation())) return false;
-
-                    plugin.getLands().get(player.getUniqueId()).get(landName).setFirstLocation(player.getLocation());
-
-                    player.sendMessage("§aPremière positon sauvegardée, /land setsecondposition " + landName);
-
+                    if(!landController.canSetPosition1(player.getLocation())) return false;
+                    plugin.getLandProgress().get(player.getUniqueId()).setPosition1(player.getLocation());
+                    player.sendMessage("§aPremière position sauvegardée, /land setpos2 " + landName);
                     return true;
                 }
-                if(args[0].equalsIgnoreCase("setlastposition"))
+                if(args[0].equalsIgnoreCase("setposition2") || args[0].equalsIgnoreCase("setpos2"))
                 {
-                    if(!landController.canSetSecondLocationOnCity(landName, player.getLocation())) return false;
-
-                    Land newLand =  plugin.getLands().get(player.getUniqueId()).get(landName);
-                    newLand.setSecondLocation(player.getLocation());
-                    newLand.buildLandLocation();
-
-                    player.sendMessage("§aPrix de votre terrain : " + newLand.getArea() * plugin.getConfig().getInt("price") + "\n" +
-                            "Pour confirmer, faites /land confirm " + landName);
+                    if(!landController.canSetPosition2(player.getLocation())) return false;
+                    plugin.getLandProgress().get(player.getUniqueId()).setPosition2(player.getLocation());
+                    player.sendMessage("§aCoût de votre terrain : " + plugin.getLandProgress().get(player.getUniqueId()).getArea() * plugin.getConfig().getInt("price") + "\n" +
+                                          "Pour confirmer, faites /land confirm " + landName);
                     return true;
                 }
                 if(args[0].equalsIgnoreCase("confirm"))
                 {
-                    if(!landController.canConfirmCity(landName)) return false;
-
+                    if(!landController.canConfirmLand(landName)) return false;
+                    plugin.getLands().computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
+                    plugin.getLands().get(player.getUniqueId()).put(landName, plugin.getLandProgress().get(player.getUniqueId()));
+                    plugin.getLandProgress().remove(player.getUniqueId());
                     EconomyPlugin economyPlugin = (EconomyPlugin) Bukkit.getServer().getPluginManager().getPlugin("Economy");
                     Economy playerEconomy = economyPlugin.getEconomies().get(player.getUniqueId());
                     playerEconomy.remove(plugin.getLands().get(player.getUniqueId()).get(landName).getArea() * plugin.getConfig().getInt("price"));
-
                     player.sendMessage("§aLa région de votre ville a bien été sauvegardée");
                     return true;
                 }
 
                 if(args[0].equalsIgnoreCase("create"))
                 {
-                    if(!landController.canCreateCity(landName)) return false;
-
-                    plugin.getLands().computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
-                    plugin.getLands().get(player.getUniqueId()).put(landName, new Land(player.getUniqueId(), landName, false));
-
+                    if(!landController.canCreateLand(landName)) return false;
+                    plugin.getLandProgress().put(player.getUniqueId(), new Land(player.getUniqueId(), landName, false));
                     player.sendMessage("§aFélicitation le terrain " + landName + " a bien été crée ! \n" +
                             " Vous avez jusqu'au prochain redemarrage pour completer votre terrain ou il sera supprimé");
                     return true;
@@ -148,9 +143,7 @@ public class CMD_Land implements CommandExecutor {
                 {
                     Player target = Bukkit.getPlayer(args[1]);
                     if(!landController.canInviteMember(target, landName)) return false;
-
                     plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().add(target.getUniqueId());
-
                     player.sendMessage("§aVous avez inviter " + target.getName() + " dans votre ville");
                     target.sendMessage("§a" + player.getName() + " vous a invité dans sa ville");
                     return true;
@@ -160,9 +153,7 @@ public class CMD_Land implements CommandExecutor {
                 {
                     Player target = Bukkit.getPlayer(args[1]);
                     if(!landController.canRemovePlayer(target, landName)) return false;
-
                     plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().remove(target.getUniqueId());
-
                     player.sendMessage("§aCe joueur a été supprimé du terrain");
                     return true;
                 }
@@ -171,7 +162,6 @@ public class CMD_Land implements CommandExecutor {
                 {
                     String value = args[1];
                     if(!landController.canHandleLandSecurity(landName, LandSecurity.INTERACT, value)) return false;
-
                     plugin.getLands().get(player.getUniqueId()).get(landName).setInteract(value.equalsIgnoreCase("on"));
                     return true;
                 }
@@ -180,7 +170,6 @@ public class CMD_Land implements CommandExecutor {
                 {
                     String value = args[1];
                     if(!landController.canHandleLandSecurity(landName, LandSecurity.MONSTER_SPAWN, value)) return false;
-
                     plugin.getLands().get(player.getUniqueId()).get(landName).setMonsterSpawn(value.equalsIgnoreCase("on"));
                     return true;
                 }
@@ -189,7 +178,6 @@ public class CMD_Land implements CommandExecutor {
                 {
                     String value = args[1];
                     if(!landController.canHandleLandSecurity(landName, LandSecurity.HIT_MONSTER, value)) return false;
-
                     plugin.getLands().get(player.getUniqueId()).get(landName).setHitMonster(value.equalsIgnoreCase("on"));
                     return true;
                 }
@@ -198,7 +186,6 @@ public class CMD_Land implements CommandExecutor {
                 {
                     String value = args[1];
                     if(!landController.canHandleLandSecurity(landName, LandSecurity.HIT_ANIMAL, value)) return false;
-
                     plugin.getLands().get(player.getUniqueId()).get(landName).setHitAnimal(value.equalsIgnoreCase("on"));
                     return true;
                 }
@@ -207,7 +194,6 @@ public class CMD_Land implements CommandExecutor {
                 {
                     String value = args[1];
                     if(!landController.canHandleLandSecurity(landName, LandSecurity.CROPS, value)) return false;
-
                     plugin.getLands().get(player.getUniqueId()).get(landName).setCrops(value.equalsIgnoreCase("on"));
                     return true;
                 }

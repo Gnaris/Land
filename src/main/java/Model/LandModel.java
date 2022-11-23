@@ -71,16 +71,16 @@ public class LandModel {
         return lands;
     }
 
-    public void createLand(UUID owner, String landName, Location minLocation, Location maxLocation, boolean isSafeZone)
+    public void createLand(Land land)
     {
         new Thread(() -> {
             try {
                 PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO land (owner, landName, minLocation, maxLocation, isSafeZone) VALUES (?, ?, ?, ?, ?)");
-                stmt.setString(1, owner != null ? owner.toString() : null);
-                stmt.setString(2, landName);
-                stmt.setString(3, new LocationParser(minLocation).ToJson());
-                stmt.setString(4, new LocationParser(maxLocation).ToJson());
-                stmt.setBoolean(5, isSafeZone);
+                stmt.setString(1, land.getOwner().toString());
+                stmt.setString(2, land.getRegionName());
+                stmt.setString(3, new LocationParser(land.getMinLocation()).ToJson());
+                stmt.setString(4, new LocationParser(land.getMaxLocation()).ToJson());
+                stmt.setBoolean(5, land.isSafeZone());
                 stmt.executeUpdate();
             }catch (SQLException | ClassNotFoundException e)
             {

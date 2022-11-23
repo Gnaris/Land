@@ -14,8 +14,8 @@ public class Land extends Region
     private final LandSecurity canHitMonster = LandSecurity.HIT_MONSTER;
     private final LandSecurity canHitAnimal = LandSecurity.HIT_ANIMAL;
     private final LandSecurity canCrops = LandSecurity.HIT_ANIMAL;
-    private Location firstLocation;
-    private Location secondLocation;
+    private Location position1;
+    private Location position2;
 
     public Land(UUID owner, String landName, boolean isSafeZone) {
         super(owner, landName);
@@ -86,35 +86,35 @@ public class Land extends Region
         Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état sur la récolte en " + value);
     }
 
-    public Location getFirstLocation() {
-        return firstLocation;
+    public Location getPosition1() {
+        return position1;
     }
 
-    public void setFirstLocation(Location firstLocation) {
-        this.firstLocation = firstLocation;
+    public void setPosition1(Location position1) {
+        this.position1 = position1;
     }
 
-    public Location getSecondLocation() {
-        return secondLocation;
+    public Location getPosition2() {
+        return position2;
     }
 
-    public void setSecondLocation(Location secondLocation) {
-        this.secondLocation = secondLocation;
+    public void setPosition2(Location position2) {
+        this.position2 = position2;
     }
 
     public void buildLandLocation()
     {
         lastMinLocation = this.minLocation;
         lastMaxLocation = this.maxLocation;
-        this.minLocation = new Location(firstLocation.getWorld(),
-                (int) Math.min(this.firstLocation.getX(), this.secondLocation.getX()),
-                (int) Math.min(this.firstLocation.getY(), this.secondLocation.getY()),
-                (int) Math.min(this.firstLocation.getZ(), this.secondLocation.getZ())
+        this.minLocation = new Location(position1.getWorld(),
+                (int) Math.min(this.position1.getX(), this.position2.getX()),
+                (int) Math.min(this.position1.getY(), this.position2.getY()),
+                (int) Math.min(this.position1.getZ(), this.position2.getZ())
         );
-        this.maxLocation = new Location(firstLocation.getWorld(),
-                (int) Math.max(this.firstLocation.getX(), this.secondLocation.getX()),
-                (int) Math.max(this.firstLocation.getY(), this.secondLocation.getY()),
-                (int) Math.max(this.firstLocation.getZ(), this.secondLocation.getZ())
+        this.maxLocation = new Location(position1.getWorld(),
+                (int) Math.max(this.position1.getX(), this.position2.getX()),
+                (int) Math.max(this.position1.getY(), this.position2.getY()),
+                (int) Math.max(this.position1.getZ(), this.position2.getZ())
         );
     }
 }

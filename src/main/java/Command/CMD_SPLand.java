@@ -9,8 +9,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-
 public class CMD_SPLand implements CommandExecutor{
 
     private final LandMain plugin;
@@ -32,9 +30,10 @@ public class CMD_SPLand implements CommandExecutor{
             if(args[0].equalsIgnoreCase("list"))
             {
                 player.sendMessage("§aVoici la liste des claims staff :");
-                StringBuilder cities = new StringBuilder();
-                for (String name : plugin.getSafeLands().keySet()) cities.append("§6" + name).append(" ");
-                player.sendMessage(cities.toString());
+                StringBuilder lands = new StringBuilder();
+                plugin.getSafeLands().values().forEach(l -> lands.append(l.getRegionName()).append(" "));
+                plugin.getLandProgress().values().stream().filter(Land::isSafeZone).forEach(l -> lands.append(l.getRegionName()).append(" : §c§lOFF").append(" "));
+                player.sendMessage(lands.toString());
                 return true;
             }
         }
@@ -42,39 +41,32 @@ public class CMD_SPLand implements CommandExecutor{
         if(args.length == 2)
         {
             String landName = args[1];
-            if(args[0].equalsIgnoreCase("setfirstposition"))
+            if(args[0].equalsIgnoreCase("setposition1") || args[0].equalsIgnoreCase("setpos1"))
             {
-                if(!landController.canSetFirstLocationOnCity(landName, player.getLocation())) return false;
-
-                plugin.getSafeLands().get(landName).setFirstLocation(player.getLocation());
-
-                player.sendMessage("§aPremière positon sauvegardée, /spland setlastpositon " + landName );
-
+                if(!landController.canSetPosition1(player.getLocation())) return false;
+                plugin.getSafeLands().get(landName).setPosition1(player.getLocation());
+                player.sendMessage("§aPremière positon sauvegardée, /spland setpos2 " + landName );
                 return true;
             }
-            if(args[0].equalsIgnoreCase("setlastposition"))
+            if(args[0].equalsIgnoreCase("setposition2") || args[0].equalsIgnoreCase("setpos2"))
             {
-                if(!landController.canSetSecondLocationOnCity(landName, player.getLocation())) return false;
-
-                plugin.getSafeLands().get(landName).setSecondLocation(player.getLocation());
-
-                player.sendMessage("§aPour valider votre ville, faites /spland confirm " + landName);
-
+                if(!landController.canSetPosition2(player.getLocation())) return false;
+                plugin.getLandProgress().get(player.getUniqueId()).setPosition2(player.getLocation());
+                player.sendMessage("§aPour valider votre région, faites /spland confirm " + landName);
                 return true;
             }
             if(args[0].equalsIgnoreCase("confirm"))
             {
-                if(!landController.canConfirmCity(landName)) return false;
-
+                if(!landController.canConfirmLand(landName)) return false;
+                plugin.getSafeLands().put(landName, plugin.getLandProgress().get(player.getUniqueId()));
+                plugin.getLandProgress().remove(player.getUniqueId());
                 player.sendMessage("§aLa région du " + landName + " a bien été enregistrée");
                 return true;
             }
             if(args[0].equalsIgnoreCase("create"))
             {
                 if(!landController.canCreateLand(landName)) return false;
-
-                plugin.getSafeLands().put(landName, new Land(player.getUniqueId(), landName, true));
-
+                plugin.getLandProgress().put(player.getUniqueId(), new Land(player.getUniqueId(), landName, true));
                 player.sendMessage("§aFélicitation le terrain " + landName + " a bien été crée ! \n" +
                         " Vous avez jusqu'au prochain redemarrage pour completer votre terrain ou il sera supprimé");
                 return true;
@@ -82,8 +74,7 @@ public class CMD_SPLand implements CommandExecutor{
 
             if(args[0].equalsIgnoreCase("delete"))
             {
-                if(!landController.canDeleteCity(landName)) return false;
-
+                if(!landController.canDeleteLand(landName)) return false;
                 plugin.getSafeLands().remove(landName);
                 player.sendMessage(landName + " a été supprimé avec succès !");
                 return true;

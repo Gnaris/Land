@@ -14,70 +14,38 @@ public class SPLandController extends Controller {
 
     public boolean canCreateLand(String landName)
     {
-        if(plugin.getSafeLands().size() > 0)
+        if(this.hasLandProgress())
         {
-            if(plugin.getSafeLands().containsKey(landName))
-            {
-                player.sendMessage("§cLe nom de ce terrain est déjà utilisée");
-                return false;
-            }
+            player.sendMessage("§cVous possédez déjà un terrain en cours de progression");
+            return false;
+        }
+        if(plugin.getSafeLands().containsKey(landName))
+        {
+            player.sendMessage("§cLe nom de ce terrain est déjà utilisé");
+            return false;
         }
         return true;
     }
 
-    public boolean canDeleteCity(String landName)
+    public boolean canDeleteLand(String landName)
     {
         if(!this.hasSafeLand(landName)) return false;
         landModel.deleteSafeLand(landName);
         return true;
     }
 
-    public boolean canSetFirstLocationOnCity(String landName, Location firstLocation)
+    public boolean canConfirmLand(String landName)
     {
-        if(!this.hasSafeLand(landName)) return false;
-        return this.positionOnOtherLand(landName, firstLocation);
-    }
-
-    public boolean canSetSecondLocationOnCity(String landName, Location secondLocation)
-    {
-        if(!this.hasSafeLand(landName)) return false;
-        Land land = plugin.getSafeLands().get(landName);
-        if(land.getFirstLocation() == null)
-        {
-            player.sendMessage("§cPremière position inexistant");
-            return false;
-        }
-        if(secondLocation.getWorld() != land.getFirstLocation().getWorld())
-        {
-            player.sendMessage("§cLes deux positions n'ont pas les mêmes monde");
-            return false;
-        }
-        return this.positionOnOtherLand(landName, secondLocation);
-    }
-
-    public boolean canConfirmCity(String landName)
-    {
-        if(!this.hasSafeLand(landName)) return false;
-        Land land = plugin.getSafeLands().get(landName);
-        if(land.getFirstLocation() == null || land.getSecondLocation() == null)
+        if(!this.hasLandProgress()) return false;
+        Land land = plugin.getLandProgress().get(player.getUniqueId());
+        if(land.getPosition1() == null || land.getPosition2() == null)
         {
             player.sendMessage("§cVous n'avez pas sauvegarder tout les positions de la ville");
             return false;
         }
-        land.buildLandLocation();
-        if(!this.cityContainOtherCity(land))
-        {
-            if(land.getLastMinLocation() != null && land.getLastMaxLocation() != null)
-            {
-                land.setMinLocation(land.getLastMinLocation());
-                land.setMaxLocation(land.getLastMaxLocation());
-            }
-            return false;
-        }
 
-        land.setFirstLocation(null);
-        land.setSecondLocation(null);
-        landModel.createLand(null, land.getRegionName(), land.getMinLocation(), land.getMaxLocation(), true);
+        land.buildLandLocation();
+        landModel.createLand(land);
         return true;
     }
 }

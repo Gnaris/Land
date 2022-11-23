@@ -29,17 +29,12 @@ public class LandProtection implements Listener {
     public void onBreak(BlockBreakEvent e)
     {
         if(e.getPlayer().hasPermission("sperias.land.claim.modify") || e.getPlayer().isOp()) return;
-
         if(plugin.getAllLand().stream().noneMatch(c -> c.isInRegion(e.getBlock().getLocation()))) return;
-
         Land land = plugin.getAllLand().stream().filter(c -> c.isInRegion(e.getBlock().getLocation())).findFirst().orElse(null);
         if(land == null) return;
         if(land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
-
         if(land.getMembers().contains(e.getPlayer().getUniqueId())) return;
-
         if(e.getBlock().getBlockData() instanceof Ageable && land.canCrops()) return;
-
         e.setCancelled(true);
         e.getPlayer().sendMessage("§cVous n'avez pas la permission");
     }
@@ -48,17 +43,12 @@ public class LandProtection implements Listener {
     public void onPut(BlockPlaceEvent e)
     {
         if(e.getPlayer().hasPermission("sperias.land.claim.modify") || e.getPlayer().isOp()) return;
-
         if(plugin.getAllLand().stream().noneMatch(c -> c.isInRegion(e.getBlock().getLocation()))) return;
-
         Land land = plugin.getAllLand().stream().filter(c -> c.isInRegion(e.getBlock().getLocation())).findFirst().orElse(null);
         if(land == null) return;
         if(land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
-
         if(land.getMembers().contains(e.getPlayer().getUniqueId())) return;
-
         if(e.getBlock().getBlockData() instanceof Ageable && land.canCrops()) return;
-
         e.setCancelled(true);
         e.getPlayer().sendMessage("§cVous n'avez pas la permission");
     }
@@ -67,19 +57,13 @@ public class LandProtection implements Listener {
     public void onInteract(PlayerInteractEvent e)
     {
         if(e.getPlayer().hasPermission("sperias.land.claim.modify") || e.getPlayer().isOp()) return;
-
         if(plugin.getAllLand().stream().noneMatch(c -> c.isInRegion(e.getClickedBlock().getLocation()))) return;
-
         Land land = plugin.getAllLand().stream().filter(l -> l.isInRegion(e.getClickedBlock().getLocation())).findFirst().orElse(null);
         if(land == null) return;
-
         if(land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
-
         if(land.getMembers().contains(e.getPlayer().getUniqueId())) return;
-
         if(e.getClickedBlock().getBlockData() instanceof Ageable && land.canCrops()) return;
         if(land.canInteract()) return;
-
         e.setCancelled(true);
         e.getPlayer().sendMessage("§cVous n'avez pas la permission");
     }
@@ -88,9 +72,7 @@ public class LandProtection implements Listener {
     public void killEntity(EntityDamageByEntityEvent e)
     {
         if(e.getDamager() instanceof Player && (e.getDamager().hasPermission("sperias.land.claim.modify") || e.getDamager().isOp())) return;
-
         if(plugin.getAllLand().stream().noneMatch(land -> land.isInRegion(e.getEntity().getLocation()))) return;
-
         Land land = plugin.getAllLand().stream().filter(l -> l.isInRegion(e.getEntity().getLocation())).collect(Collectors.toList()).stream().findFirst().orElse(null);
         if (land == null) return;
         if(e.getDamager() instanceof Player && land.getMembers().contains(e.getEntity().getUniqueId())) return;
@@ -110,7 +92,6 @@ public class LandProtection implements Listener {
         Land land = plugin.getAllLand().stream().filter(l -> l.isInRegion(e.getEntity().getLocation())).findFirst().orElse(null);
         if(land == null) return;
         if(land.monsterCanSpawn()) return;
-
         e.setCancelled(true);
     }
 }

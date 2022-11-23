@@ -20,7 +20,8 @@ public class LandModel {
     private final SPDatabase database = (SPDatabase) Bukkit.getServer().getPluginManager().getPlugin("SP_Database");
 
 
-    public Map<UUID, Map<String, Land>> getAllLands() throws SQLException, ClassNotFoundException {
+    public Map<UUID, Map<String, Land>> getAllLands() throws SQLException, ClassNotFoundException
+    {
         PreparedStatement stmt = database.getConnection().prepareStatement("SELECT * FROM land WHERE isSafezone = false");
         ResultSet result = stmt.executeQuery();
         List<Land> lands = new ArrayList<>();
@@ -47,7 +48,8 @@ public class LandModel {
         return playerLands;
     }
 
-    public Map<String, Land> getAllSafeLand() throws SQLException, ClassNotFoundException {
+    public Map<String, Land> getAllSafeLand() throws SQLException, ClassNotFoundException
+    {
         PreparedStatement stmt = database.getConnection().prepareStatement("SELECT * FROM land WHERE isSafeZone = true");
         ResultSet result = stmt.executeQuery();
         Map<String, Land> lands = new HashMap<>();
@@ -76,7 +78,7 @@ public class LandModel {
         new Thread(() -> {
             try {
                 PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO land (owner, landName, minLocation, maxLocation, isSafeZone) VALUES (?, ?, ?, ?, ?)");
-                stmt.setString(1, land.getOwner().toString());
+                stmt.setString(1, land.isSafeZone() ? null : land.getOwner().toString());
                 stmt.setString(2, land.getRegionName());
                 stmt.setString(3, new LocationParser(land.getMinLocation()).ToJson());
                 stmt.setString(4, new LocationParser(land.getMaxLocation()).ToJson());
@@ -146,13 +148,14 @@ public class LandModel {
         return landMembers;
     }
 
-    public void addMember(UUID owner, UUID member)
+    public void addMember(UUID owner, String landName , UUID member)
     {
         new Thread(() -> {
             try {
-                PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO land_member (owner, member) VALUES (?, ?)");
+                PreparedStatement stmt = database.getConnection().prepareStatement("INSERT INTO land_member (landID, member) VALUES ( (SELECT id FROM land WHERE owner = ? AND landName = ?), ?)");
                 stmt.setString(1, owner.toString());
-                stmt.setString(2, member.toString());
+                stmt.setString(2, landName);
+                stmt.setString(3, member.toString());
                 stmt.executeUpdate();
             }catch (SQLException | ClassNotFoundException e)
             {
@@ -162,13 +165,14 @@ public class LandModel {
 
     }
 
-    public void removeMember(UUID owner, UUID member)
+    public void removeMember(UUID owner, String landName, UUID member)
     {
         new Thread(() -> {
             try {
-                PreparedStatement stmt = database.getConnection().prepareStatement("DELETE FROM land_member WHERE owner = ? AND member = ?");
+                PreparedStatement stmt = database.getConnection().prepareStatement("DELETE FROM land_member WHERE landID = (SELECT id FROM land WHERE owner = ? AND landName = ?) AND member = ?");
                 stmt.setString(1, owner.toString());
-                stmt.setString(2, member.toString());
+                stmt.setString(2, landName);
+                stmt.setString(3, member.toString());
                 stmt.executeUpdate();
             }catch (SQLException | ClassNotFoundException e)
             {
@@ -177,12 +181,13 @@ public class LandModel {
         }).start();
     }
 
-    public void setLandSecurity(UUID owner, LandSecurity landSecurity, boolean value){
+    public void setLandSecurity(UUID owner, String landName, LandSecurity landSecurity, boolean value){
         new Thread(() -> {
             try {
-                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET " + landSecurity.getName() +" = ? WHERE owner = ? AND isSafeZone = false");
+                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET " + landSecurity.getName() +" = ? WHERE owner = ? AND landName = ?");
                 stmt.setBoolean(1, value);
                 stmt.setString(2, owner.toString());
+                stmt.setString(3, landName);
                 stmt.executeUpdate();
             }catch (SQLException | ClassNotFoundException e)
             {
@@ -194,7 +199,7 @@ public class LandModel {
     public void setSafeLandSecurity(String landName, LandSecurity landSecurity, boolean value){
         new Thread(() -> {
             try {
-                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET " + landSecurity.getName() +" = ? WHERE landName = ? AND isSafeZone = true");
+                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET " + landSecurity.getName() +" = ? WHERE landName = ?");
                 stmt.setBoolean(1, value);
                 stmt.setString(2, landName);
                 stmt.executeUpdate();

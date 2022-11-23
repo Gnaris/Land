@@ -10,11 +10,11 @@ public class Land extends Region
     private Location spawnLocation;
     private boolean isCity;
     private final boolean isSafeZone;
-    private final LandSecurity canInteract = LandSecurity.INTERACT;
-    private final LandSecurity monsterCanSpawn = LandSecurity.MONSTER_SPAWN;
-    private final LandSecurity canHitMonster = LandSecurity.HIT_MONSTER;
-    private final LandSecurity canHitAnimal = LandSecurity.HIT_ANIMAL;
-    private final LandSecurity canCrops = LandSecurity.HIT_ANIMAL;
+    private boolean canInteract = false;
+    private boolean monsterCanSpawn = true;
+    private boolean canHitMonster = false;
+    private boolean canHitAnimal = false;
+    private boolean canCrops = false;
     private Location position1;
     private Location position2;
 
@@ -27,11 +27,11 @@ public class Land extends Region
         super(owner, landName, minLocation, maxLocation);
         this.isCity = isCity;
         this.isSafeZone = isSafeZone;
-        this.canInteract.setValue(canInteract);
-        this.monsterCanSpawn.setValue(monsterCanSpawn);
-        this.canHitMonster.setValue(canHitMonster);
-        this.canHitAnimal.setValue(canHitAnimal);
-        this.canCrops.setValue(canCrops);
+        this.canInteract = canInteract;
+        this.monsterCanSpawn = monsterCanSpawn;
+        this.canHitMonster = canHitMonster;
+        this.canHitAnimal = canHitAnimal;
+        this.canCrops = canCrops;
     }
 
     public boolean isCity() {
@@ -43,48 +43,48 @@ public class Land extends Region
     }
 
     public boolean canInteract() {
-        return canInteract.getValue();
+        return canInteract;
     }
 
     public boolean monsterCanSpawn() {
-        return monsterCanSpawn.getValue();
+        return monsterCanSpawn;
     }
 
     public boolean canHitMonster() {
-        return canHitMonster.getValue();
+        return canHitMonster;
     }
 
     public boolean canHitAnimal() {
-        return canHitAnimal.getValue();
+        return canHitAnimal;
     }
 
     public boolean canCrops() {
-        return canCrops.getValue();
+        return canCrops;
     }
 
     public void setInteract(boolean value) {
-        this.canInteract.setValue(value);
-        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'interaction avec les blocs en " + value);
+        this.canInteract = value;
+        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'interaction avec les blocs en " + value);
     }
 
     public void setMonsterSpawn(boolean value) {
-        this.monsterCanSpawn.setValue(value);
-        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'apparaition des monstres en " + value);
+        this.monsterCanSpawn = value;
+        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'apparaition des monstres en " + value);
     }
 
     public void setHitMonster(boolean value) {
-        this.canHitMonster.setValue(value);
-        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'hostilité contre les monstres en " + value);
+        this.canHitMonster = value;
+        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'hostilité contre les monstres en " + value);
     }
 
     public void setHitAnimal(boolean value) {
-        this.canHitAnimal.setValue(value);
-        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état d'hostilité contre les animaux en " + value);
+        this.canHitAnimal = value;
+        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'hostilité contre les animaux en " + value);
     }
 
     public void setCrops(boolean value) {
-        this.canCrops.setValue(value);
-        Bukkit.getPlayer(this.owner).sendMessage("§cChangement d'état sur la récolte en " + value);
+        this.canCrops = value;
+        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état sur la récolte en " + value);
     }
 
     public Location getPosition1() {

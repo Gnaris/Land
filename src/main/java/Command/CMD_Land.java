@@ -29,7 +29,6 @@ public class CMD_Land implements CommandExecutor {
             Player player = (Player) sender;
 
             LandController landController = new LandController(player, plugin);
-
             if(args.length == 1)
             {
                 if(args[0].equalsIgnoreCase("list"))
@@ -72,7 +71,15 @@ public class CMD_Land implements CommandExecutor {
                 {
                     if(!landController.canDeleteLand(landName)) return false;
                     plugin.getLands().get(player.getUniqueId()).remove(landName);
-                    player.sendMessage("§aLa ville " + landName + " a été supprimée");
+                    player.sendMessage("§aLa région " + landName + " a été supprimée");
+                    return true;
+                }
+
+                if(args[0].equalsIgnoreCase("pdelete"))
+                {
+                    if(!landController.hasLandProgress()) return false;
+                    plugin.getLandProgress().remove(player.getUniqueId());
+                    player.sendMessage("§aLa région " + landName + " a été supprimée");
                     return true;
                 }
 
@@ -114,7 +121,7 @@ public class CMD_Land implements CommandExecutor {
                 }
                 if(args[0].equalsIgnoreCase("confirm"))
                 {
-                    if(!landController.canConfirmLand(landName)) return false;
+                    if(!landController.canConfirmLand()) return false;
                     plugin.getLands().computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
                     plugin.getLands().get(player.getUniqueId()).put(landName, plugin.getLandProgress().get(player.getUniqueId()));
                     plugin.getLandProgress().remove(player.getUniqueId());

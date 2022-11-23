@@ -17,25 +17,22 @@ public class LandController extends Controller{
 
     public boolean canListLand()
     {
-        if(!plugin.getLands().containsKey(player.getUniqueId()))
+        if(!plugin.getLands().containsKey(player.getUniqueId()) && !plugin.getLandProgress().containsKey(player.getUniqueId()))
         {
-            if(!this.hasLandProgress())
-            {
-                player.sendMessage("§cVous n'avez pas de terrain");
-                return false;
-            }
+            player.sendMessage("§cVous n'avez pas de terrain");
+            return false;
         }
         return true;
     }
 
     public boolean canCreateLand(String landName)
     {
-        if(this.hasLandProgress())
+        if(plugin.getLandProgress().containsKey(player.getUniqueId()))
         {
             player.sendMessage("§cVous avez déjà un terrain en progression");
             return false;
         }
-        if(plugin.getLands().size() > 0)
+        if(plugin.getLands().containsKey(player.getUniqueId()))
         {
             if(plugin.getLands().get(player.getUniqueId()).containsKey(landName))
             {
@@ -55,7 +52,6 @@ public class LandController extends Controller{
     public boolean canDeleteLand(String landName)
     {
         if(!this.hasLand(landName)) return false;
-
         landModel.deleteLand(player.getUniqueId(), landName);
         return true;
     }
@@ -65,13 +61,13 @@ public class LandController extends Controller{
         if(!this.targetExist(target)) return false;
         if(!this.hasLand(landName)) return false;
 
-        if(plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().contains(player.getUniqueId()))
+        if(plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().contains(target.getUniqueId()))
         {
             player.sendMessage("§cCe joueur est déjà dans votre claim");
             return false;
         }
 
-        landModel.addMember(player.getUniqueId(), target.getUniqueId());
+        landModel.addMember(player.getUniqueId(), landName, target.getUniqueId());
         return true;
     }
 
@@ -80,17 +76,17 @@ public class LandController extends Controller{
         if(!this.targetExist(target)) return false;
         if(!this.hasLand(landName)) return false;
 
-        if(!plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().contains(player.getUniqueId()))
+        if(!plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().contains(target.getUniqueId()))
         {
             player.sendMessage("§cCe joueur n'est pas dans votre terrain");
             return false;
         }
 
-        landModel.removeMember(player.getUniqueId(), target.getUniqueId());
+        landModel.removeMember(player.getUniqueId(), landName, target.getUniqueId());
         return true;
     }
 
-    public boolean canConfirmLand(String landName)
+    public boolean canConfirmLand()
     {
         if(!this.hasLandProgress()) return false;
         Land land = plugin.getLandProgress().get(player.getUniqueId());

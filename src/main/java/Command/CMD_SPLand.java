@@ -44,20 +44,19 @@ public class CMD_SPLand implements CommandExecutor{
             if(args[0].equalsIgnoreCase("setposition1") || args[0].equalsIgnoreCase("setpos1"))
             {
                 if(!landController.canSetPosition1(player.getLocation())) return false;
-                plugin.getSafeLands().get(landName).setPosition1(player.getLocation());
+                plugin.getLandProgress().get(player.getUniqueId()).setPosition1(player.getLocation());
                 player.sendMessage("§aPremière positon sauvegardée, /spland setpos2 " + landName );
                 return true;
             }
             if(args[0].equalsIgnoreCase("setposition2") || args[0].equalsIgnoreCase("setpos2"))
             {
                 if(!landController.canSetPosition2(player.getLocation())) return false;
-                plugin.getLandProgress().get(player.getUniqueId()).setPosition2(player.getLocation());
                 player.sendMessage("§aPour valider votre région, faites /spland confirm " + landName);
                 return true;
             }
             if(args[0].equalsIgnoreCase("confirm"))
             {
-                if(!landController.canConfirmLand(landName)) return false;
+                if(!landController.canConfirmLand()) return false;
                 plugin.getSafeLands().put(landName, plugin.getLandProgress().get(player.getUniqueId()));
                 plugin.getLandProgress().remove(player.getUniqueId());
                 player.sendMessage("§aLa région du " + landName + " a bien été enregistrée");
@@ -76,7 +75,7 @@ public class CMD_SPLand implements CommandExecutor{
             {
                 if(!landController.canDeleteLand(landName)) return false;
                 plugin.getSafeLands().remove(landName);
-                player.sendMessage(landName + " a été supprimé avec succès !");
+                player.sendMessage("§a" + landName + " a été supprimé avec succès !");
                 return true;
             }
         }

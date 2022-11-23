@@ -35,11 +35,16 @@ public class Controller{
 
     public boolean hasLand(String landName)
     {
+        if(!plugin.getLands().containsKey(player.getUniqueId()))
+        {
+            player.sendMessage("§cVous n'avez pas de terrain");
+            return false;
+        }
         if(plugin.getLands().containsKey(player.getUniqueId()))
         {
             if(!plugin.getLands().get(player.getUniqueId()).containsKey(landName))
             {
-                player.sendMessage("Ce terrain n'existe pas");
+                player.sendMessage("§cCe terrain n'existe pas");
                 return false;
             }
         }
@@ -84,7 +89,7 @@ public class Controller{
             player.sendMessage("§c" + value + " n'est pas une valeur correct. (§aON §r| §cOFF)");
             return false;
         }
-        landModel.setLandSecurity(player.getUniqueId(), landSecurity, value.equalsIgnoreCase("on"));
+        landModel.setLandSecurity(player.getUniqueId(), landName, landSecurity, value.equalsIgnoreCase("on"));
         return true;
     }
 
@@ -131,7 +136,7 @@ public class Controller{
             return false;
         }
         if(!positionOnOtherLand(position2)) return false;
-
+        land.setPosition2(position2);
         land.buildLandLocation();
         if(plugin.getAllLand().stream().anyMatch(l -> land.isInRegion(l.getMinLocation()) || land.isInRegion(l.getMaxLocation())))
         {

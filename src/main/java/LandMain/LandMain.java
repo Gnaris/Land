@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public final class LandMain extends JavaPlugin {
 
-    private Map<UUID, Land> landProgress = new HashMap<>();
+    private final Map<UUID, Land> landProgress = new HashMap<>();
     private Map<UUID, Map<String, Land>> lands = new HashMap<>();
     private Map<String, Land> safeLands = new HashMap<>();
 

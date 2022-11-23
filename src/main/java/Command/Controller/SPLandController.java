@@ -33,7 +33,7 @@ public class SPLandController extends Controller {
         return true;
     }
 
-    public boolean canConfirmLand(String landName)
+    public boolean canConfirmLand()
     {
         if(!this.hasLandProgress()) return false;
         Land land = plugin.getLandProgress().get(player.getUniqueId());

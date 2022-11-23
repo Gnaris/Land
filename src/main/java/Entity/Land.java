@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public class Land extends Region
 {
+    private Location spawnLocation;
     private boolean isCity;
     private final boolean isSafeZone;
     private final LandSecurity canInteract = LandSecurity.INTERACT;
@@ -116,5 +117,13 @@ public class Land extends Region
                 (int) Math.max(this.position1.getY(), this.position2.getY()),
                 (int) Math.max(this.position1.getZ(), this.position2.getZ())
         );
+    }
+
+    public Location getSpawnLocation() {
+        return spawnLocation;
+    }
+
+    public void setSpawnLocation(Location spawnLocation) {
+        this.spawnLocation = spawnLocation;
     }
 }

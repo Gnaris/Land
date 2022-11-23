@@ -4,7 +4,7 @@ import Controller.Controller;
 import Economy.EconomyPlugin;
 import Entity.Economy;
 import Entity.Land;
-import Land.LandMain;
+import LandMain.LandMain;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import sperias.group.GroupManager.GroupManager;
@@ -110,6 +110,13 @@ public class LandController extends Controller{
         }
 
         landModel.createLand(land);
+        return true;
+    }
+
+    public boolean canSetSpawn(String landName)
+    {
+        if(!this.hasLand(landName)) return false;
+        landModel.setSpawnLand(player.getUniqueId(), landName, player.getLocation());
         return true;
     }
 }

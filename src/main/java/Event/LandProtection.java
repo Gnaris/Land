@@ -1,7 +1,7 @@
 package Event;
 
 import Entity.Land;
-import Land.LandMain;
+import LandMain.LandMain;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Monster;

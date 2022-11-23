@@ -204,4 +204,19 @@ public class LandModel {
             }
         }).start();
     }
+
+    public void setSpawnLand(UUID uuid, String landName, Location location)
+    {
+        new Thread(() -> {
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET spawnLocation = ? WHERE landName = ? AND owner = ?");
+                stmt.setString(1, new LocationParser(location).ToJson());
+                stmt.setString(2, landName);
+                stmt.setString(3, uuid.toString());
+                stmt.executeUpdate();
+            } catch (SQLException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
 }

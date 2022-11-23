@@ -5,7 +5,7 @@ import Economy.EconomyPlugin;
 import Entity.Economy;
 import Entity.Land;
 import Entity.LandSecurity;
-import Land.LandMain;
+import LandMain.LandMain;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -108,7 +108,7 @@ public class CMD_Land implements CommandExecutor {
                 {
                     if(!landController.canSetPosition2(player.getLocation())) return false;
                     plugin.getLandProgress().get(player.getUniqueId()).setPosition2(player.getLocation());
-                    player.sendMessage("§aCoût de votre terrain : " + plugin.getLandProgress().get(player.getUniqueId()).getArea() * plugin.getConfig().getInt("price") + "\n" +
+                    player.sendMessage("§aCoût de votre région : " + plugin.getLandProgress().get(player.getUniqueId()).getArea() * plugin.getConfig().getInt("price") + "\n" +
                                           "Pour confirmer, faites /land confirm " + landName);
                     return true;
                 }
@@ -130,8 +130,16 @@ public class CMD_Land implements CommandExecutor {
                     if(!landController.canCreateLand(landName)) return false;
                     plugin.getLandProgress().put(player.getUniqueId(), new Land(player.getUniqueId(), landName, false));
                     player.sendMessage("§aFélicitation le terrain " + landName + " a bien été crée ! \n" +
-                            " Vous avez jusqu'au prochain redemarrage pour completer votre terrain ou il sera supprimé");
+                            " Vous avez jusqu'au prochain redemarrage pour completer votre région ou il sera supprimé");
                     return true;
+                }
+
+                if(args[0].equalsIgnoreCase("setspawn"))
+                {
+                    if(!landController.canSetSpawn(landName)) return false;
+                    plugin.getLands().get(player.getUniqueId()).get(landName).setSpawnLocation(player.getLocation());
+                    player.sendMessage("§cUn nouveau spawn a été défini dans cette région");
+                    return false;
                 }
             }
 

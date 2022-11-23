@@ -3,11 +3,9 @@ package Controller;
 import Entity.Land;
 import Entity.LandSecurity;
 import Model.LandModel;
-import Land.LandMain;
+import LandMain.LandMain;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-
-import java.util.stream.Collectors;
 
 public class Controller{
 

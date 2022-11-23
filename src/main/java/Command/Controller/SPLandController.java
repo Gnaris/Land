@@ -2,8 +2,7 @@ package Command.Controller;
 
 import Controller.Controller;
 import Entity.Land;
-import Land.LandMain;
-import org.bukkit.Location;
+import LandMain.LandMain;
 import org.bukkit.entity.Player;
 
 public class SPLandController extends Controller {

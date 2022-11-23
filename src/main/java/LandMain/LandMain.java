@@ -1,4 +1,4 @@
-package Land;
+package LandMain;
 
 import Command.CMD_Land;
 import Command.CMD_SPLand;
@@ -19,8 +19,6 @@ public final class LandMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // ! VERIFIER SI UN CLAIM EXISTE DEJA DANS LA ZONE
-        // ! METTRE UN SPAWN POUR CHAQUE CLAIM
         saveDefaultConfig();
 
         getCommand("land").setExecutor(new CMD_Land(this));

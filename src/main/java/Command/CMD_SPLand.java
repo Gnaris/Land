@@ -3,7 +3,7 @@ package Command;
 import Command.Controller.SPLandController;
 import Entity.Land;
 import Entity.LandSecurity;
-import Land.LandMain;
+import LandMain.LandMain;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -23,13 +23,13 @@ public class CMD_SPLand implements CommandExecutor{
         if(!(sender instanceof Player)) return false;
         Player player = (Player) sender;
         SPLandController landController = new SPLandController(player, plugin);
-        if(!landController.hasPermission("sperias.city.command.staff")) return false;
+        if(!landController.hasPermission("sperias.land.command.staff")) return false;
 
         if(args.length == 1)
         {
             if(args[0].equalsIgnoreCase("list"))
             {
-                player.sendMessage("§aVoici la liste des claims staff :");
+                player.sendMessage("§aVoici la liste des régions staff :");
                 StringBuilder lands = new StringBuilder();
                 plugin.getSafeLands().values().forEach(l -> lands.append(l.getRegionName()).append(" "));
                 plugin.getLandProgress().values().stream().filter(Land::isSafeZone).forEach(l -> lands.append(l.getRegionName()).append(" : §c§lOFF").append(" "));

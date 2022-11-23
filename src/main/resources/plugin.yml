@@ -1,6 +1,6 @@
 name: Land
 version: 1.0
-main: Land.LandMain
+main: LandMain.LandMain
 api-version: 1.19
 authors: [ Gnaris ]
 depend: [SP_Database, GroupManager, Economy]

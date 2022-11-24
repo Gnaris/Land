@@ -7,6 +7,7 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Wither;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -30,7 +31,7 @@ public class LandProtection implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler (priority = EventPriority.HIGH)
+    @EventHandler (priority = EventPriority.LOW)
     public void onBreak(BlockBreakEvent e)
     {
         if(e.getPlayer().hasPermission("sperias.land.claim.modify") || e.getPlayer().isOp()) return;
@@ -44,7 +45,7 @@ public class LandProtection implements Listener {
         e.getPlayer().sendMessage("§cVous n'avez pas la permission");
     }
 
-    @EventHandler (priority = EventPriority.HIGH)
+    @EventHandler (priority = EventPriority.LOW)
     public void onPut(BlockPlaceEvent e)
     {
         if(e.getPlayer().hasPermission("sperias.land.claim.modify") || e.getPlayer().isOp()) return;
@@ -58,7 +59,7 @@ public class LandProtection implements Listener {
         e.getPlayer().sendMessage("§cVous n'avez pas la permission");
     }
 
-    @EventHandler (priority = EventPriority.HIGH)
+    @EventHandler (priority = EventPriority.LOW)
     public void onInteract(PlayerInteractEvent e)
     {
         if(e.getClickedBlock() == null) return;
@@ -74,7 +75,7 @@ public class LandProtection implements Listener {
         e.getPlayer().sendMessage("§cVous n'avez pas la permission");
     }
 
-    @EventHandler (priority = EventPriority.HIGH)
+    @EventHandler (priority = EventPriority.LOW)
     public void killEntity(EntityDamageByEntityEvent e)
     {
         if(e.getDamager() instanceof Player && (e.getDamager().hasPermission("sperias.land.claim.modify") || e.getDamager().isOp())) return;
@@ -91,7 +92,7 @@ public class LandProtection implements Listener {
         e.getDamager().sendMessage("§cVous n'avez pas la permission");
     }
 
-    @EventHandler (priority = EventPriority.HIGH)
+    @EventHandler (priority = EventPriority.LOW)
     public void spawningEntity(EntitySpawnEvent e)
     {
         if(!(e.getEntity() instanceof Monster)) return;
@@ -102,11 +103,10 @@ public class LandProtection implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOW)
     public void explose(EntityExplodeEvent e)
     {
         if(plugin.getAllLand().stream().noneMatch(l -> e.blockList().stream().anyMatch(b -> l.isInRegion(b.getLocation())))) return;
-
         e.setCancelled(true);
     }
 }

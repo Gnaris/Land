@@ -146,17 +146,29 @@ public class CMD_Land implements CommandExecutor {
                     if(!landController.canSetSpawn(landName)) return false;
                     plugin.getLands().get(player.getUniqueId()).get(landName).setSpawnLocation(player.getLocation());
                     player.sendMessage("§cUn nouveau spawn a été défini dans cette région");
-                    return false;
+                    return true;
+                }
+                if(args[0].equalsIgnoreCase("spawn"))
+                {
+                    if(!landController.canGoSpawn(landName)) return false;
+                    player.teleport(plugin.getLands().get(player.getUniqueId()).get(landName).getSpawnLocation());
+                    return true;
                 }
             }
 
 
             if(args.length == 3)
             {
+                Player target = Bukkit.getPlayer(args[1]);
                 String landName = args[2];
+                if(args[0].equalsIgnoreCase("spawn"))
+                {
+                    if(!landController.canGoOtherSpawn(target, landName)) return false;
+                    player.teleport(plugin.getLands().get(target.getUniqueId()).get(landName).getSpawnLocation());
+                    return true;
+                }
                 if(args[0].equalsIgnoreCase("invite"))
                 {
-                    Player target = Bukkit.getPlayer(args[1]);
                     if(!landController.canInviteMember(target, landName)) return false;
                     plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().add(target.getUniqueId());
                     player.sendMessage("§aVous avez inviter " + target.getName() + " dans votre ville");
@@ -166,7 +178,6 @@ public class CMD_Land implements CommandExecutor {
 
                 if(args[0].equalsIgnoreCase("remove"))
                 {
-                    Player target = Bukkit.getPlayer(args[1]);
                     if(!landController.canRemovePlayer(target, landName)) return false;
                     plugin.getLands().get(player.getUniqueId()).get(landName).getMembers().remove(target.getUniqueId());
                     player.sendMessage("§aCe joueur a été supprimé du terrain");

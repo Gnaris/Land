@@ -115,4 +115,41 @@ public class LandController extends Controller{
         landModel.setSpawnLand(player.getUniqueId(), landName, player.getLocation());
         return true;
     }
+
+    public boolean canGoSpawn(String landName)
+    {
+        if(!this.hasLand(landName))
+        {
+            player.sendMessage("§cVous n'avez pas de région sous le nom de " + landName);
+            return false;
+        }
+        if(plugin.getLands().get(player.getUniqueId()).get(landName).getSpawnLocation() == null)
+        {
+            player.sendMessage("§cCette région ne possède pas de spawn");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean canGoOtherSpawn(Player owner, String landName)
+    {
+        if(!targetExist(owner)) return false;
+        if(!plugin.getLands().containsKey(owner.getUniqueId()))
+        {
+            player.sendMessage("§cCe joueur ne possède pas de région");
+            return false;
+        }
+        if(!plugin.getLands().get(owner.getUniqueId()).containsKey(landName))
+        {
+            player.sendMessage("§cCe joueur ne possède pas de région");
+            return false;
+        }
+        Land land = plugin.getLands().get(owner.getUniqueId()).get(landName);
+        if(!land.getMembers().contains(player.getUniqueId()))
+        {
+            player.sendMessage("§cVous ne pouvez pas vous téléporter dans cette région");
+            return false;
+        }
+        return true;
+    }
 }

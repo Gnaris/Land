@@ -1,5 +1,6 @@
 package Entity;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -23,8 +24,9 @@ public class Land extends Region
         this.isSafeZone = isSafeZone;
     }
 
-    public Land(UUID owner, String landName, Location minLocation, Location maxLocation, boolean isSafeZone, boolean isCity, boolean canInteract, boolean monsterCanSpawn, boolean canHitMonster, boolean canHitAnimal, boolean canCrops) {
+    public Land(UUID owner, String landName, Location minLocation, Location maxLocation, Location spawnLocation, boolean isSafeZone, boolean isCity, boolean canInteract, boolean monsterCanSpawn, boolean canHitMonster, boolean canHitAnimal, boolean canCrops) {
         super(owner, landName, minLocation, maxLocation);
+        this.spawnLocation = spawnLocation;
         this.isCity = isCity;
         this.isSafeZone = isSafeZone;
         this.canInteract = canInteract;
@@ -64,27 +66,22 @@ public class Land extends Region
 
     public void setInteract(boolean value) {
         this.canInteract = value;
-        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'interaction avec les blocs en " + value);
     }
 
     public void setMonsterSpawn(boolean value) {
         this.monsterCanSpawn = value;
-        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'apparaition des monstres en " + value);
     }
 
     public void setHitMonster(boolean value) {
         this.canHitMonster = value;
-        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'hostilité contre les monstres en " + value);
     }
 
     public void setHitAnimal(boolean value) {
         this.canHitAnimal = value;
-        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état d'hostilité contre les animaux en " + value);
     }
 
     public void setCrops(boolean value) {
         this.canCrops = value;
-        Bukkit.getPlayer(this.owner).sendMessage("§aChangement d'état sur la récolte en " + value);
     }
 
     public Location getPosition1() {
@@ -103,15 +100,25 @@ public class Land extends Region
         this.position2 = position2;
     }
 
-    public void buildLandLocation()
-    {
-        lastMinLocation = this.minLocation;
-        lastMaxLocation = this.maxLocation;
+    public void setMinLocation() {
+        if(position1 == null || position2 == null)
+        {
+            minLocation = null;
+            return;
+        }
         this.minLocation = new Location(position1.getWorld(),
                 (int) Math.min(this.position1.getX(), this.position2.getX()),
                 (int) Math.min(this.position1.getY(), this.position2.getY()),
                 (int) Math.min(this.position1.getZ(), this.position2.getZ())
         );
+    }
+
+    public void setMaxLocation() {
+        if(position1 == null || position2 == null)
+        {
+            maxLocation = null;
+            return;
+        }
         this.maxLocation = new Location(position1.getWorld(),
                 (int) Math.max(this.position1.getX(), this.position2.getX()),
                 (int) Math.max(this.position1.getY(), this.position2.getY()),

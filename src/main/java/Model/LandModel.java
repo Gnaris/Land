@@ -34,6 +34,7 @@ public class LandModel {
                     result.getString("landName"),
                     gson.fromJson(result.getString("minLocation"), LocationParser.class).toLocation(),
                     gson.fromJson(result.getString("maxLocation"), LocationParser.class).toLocation(),
+                    result.getString("spawnLocation") != null ? gson.fromJson(result.getString("spawnLocation"), LocationParser.class).toLocation() : null,
                     result.getBoolean("isSafeZone"),
                     result.getBoolean("isCity"),
                     result.getBoolean("canInteract"),
@@ -61,6 +62,7 @@ public class LandModel {
                     result.getString("landName"),
                     gson.fromJson(result.getString("minLocation"), LocationParser.class).toLocation(),
                     gson.fromJson(result.getString("maxLocation"), LocationParser.class).toLocation(),
+                    null,
                     result.getBoolean("isSafeZone"),
                     result.getBoolean("isCity"),
                     result.getBoolean("canInteract"),
@@ -210,14 +212,29 @@ public class LandModel {
         }).start();
     }
 
-    public void setSpawnLand(UUID uuid, String landName, Location location)
+    public void setSpawnLand(Land land, Location location)
     {
         new Thread(() -> {
             try {
                 PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET spawnLocation = ? WHERE landName = ? AND owner = ?");
                 stmt.setString(1, new LocationParser(location).ToJson());
-                stmt.setString(2, landName);
-                stmt.setString(3, uuid.toString());
+                stmt.setString(2, land.getRegionName());
+                stmt.setString(3, land.getOwner().toString());
+                stmt.executeUpdate();
+            } catch (SQLException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public void deleteSpawnLand(Land land)
+    {
+        new Thread(() -> {
+
+            try {
+                PreparedStatement stmt = database.getConnection().prepareStatement("UPDATE land SET spawnLocation = NULL WHERE landName = ? AND owner = ?");
+                stmt.setString(1, land.getRegionName());
+                stmt.setString(2, land.getOwner().toString());
                 stmt.executeUpdate();
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();

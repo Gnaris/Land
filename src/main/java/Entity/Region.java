@@ -13,8 +13,6 @@ public class Region{
     protected List<UUID> members = new ArrayList<>();
     protected Location minLocation;
     protected Location maxLocation;
-    protected Location lastMinLocation;
-    protected Location lastMaxLocation;
 
     public Region(UUID owner, String regionName) {
         this.owner = owner;
@@ -60,21 +58,6 @@ public class Region{
         return maxLocation;
     }
 
-    public void setMinLocation(Location minLocation) {
-        this.minLocation = minLocation;
-    }
-
-    public void setMaxLocation(Location maxLocation) {
-        this.maxLocation = maxLocation;
-    }
-
-    public Location getLastMinLocation() {
-        return lastMinLocation;
-    }
-
-    public Location getLastMaxLocation() {
-        return lastMaxLocation;
-    }
     public String getRegionName() {
         return regionName;
     }

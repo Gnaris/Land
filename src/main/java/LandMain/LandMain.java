@@ -3,6 +3,7 @@ package LandMain;
 import Command.CMD_Land;
 import Command.CMD_SPLand;
 import Entity.Land;
+import Event.LandClaim;
 import Event.LandProtection;
 import Model.LandModel;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,6 +26,7 @@ public final class LandMain extends JavaPlugin {
         getCommand("spland").setExecutor(new CMD_SPLand(this));
 
         getServer().getPluginManager().registerEvents(new LandProtection(this), this);
+        getServer().getPluginManager().registerEvents(new LandClaim(this), this);
 
         LandModel landModel = new LandModel();
         try
@@ -71,5 +73,10 @@ public final class LandMain extends JavaPlugin {
             landList.addAll(safeLands.values());
         }
         return landList.stream().filter(land -> land.getMinLocation() != null && land.getMaxLocation() != null).collect(Collectors.toList());
+    }
+
+    public long getClaimPrice()
+    {
+        return getConfig().getLong("price");
     }
 }

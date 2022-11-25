@@ -4,6 +4,7 @@ import Entity.Land;
 import Entity.LandSecurity;
 import Model.LandModel;
 import LandMain.LandMain;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -22,12 +23,12 @@ public class Controller{
     {
         if(target == null)
         {
-            player.sendMessage("§cCe joueur n'existe pas");
+            player.sendMessage(ChatColor.of("#FF0000") + "Ce joueur n'existe pas");
             return false;
         }
         if(target == player)
         {
-            player.sendMessage("§c...");
+            player.sendMessage(ChatColor.of("#FF0000") + "...");
             return false;
         }
         return true;
@@ -37,14 +38,14 @@ public class Controller{
     {
         if(!plugin.getLands().containsKey(player.getUniqueId()))
         {
-            player.sendMessage("§cVous n'avez pas de terrain");
+            player.sendMessage(ChatColor.of("#FF0000") + "Vous n'avez pas de terrain");
             return false;
         }
         if(plugin.getLands().containsKey(player.getUniqueId()))
         {
             if(!plugin.getLands().get(player.getUniqueId()).containsKey(landName))
             {
-                player.sendMessage("§cCe terrain n'existe pas");
+                player.sendMessage(ChatColor.of("#FF0000") + "Ce terrain n'existe pas");
                 return false;
             }
         }
@@ -55,7 +56,7 @@ public class Controller{
     {
         if(!plugin.getSafeLands().containsKey(landName))
         {
-            player.sendMessage("§cCe terrain n'existe pas");
+            player.sendMessage(ChatColor.of("#FF0000") + "Ce terrain n'existe pas");
             return false;
         }
         return true;
@@ -65,7 +66,7 @@ public class Controller{
     {
         if(!plugin.getLandProgress().containsKey(player.getUniqueId()))
         {
-            player.sendMessage("§cCe terrain n'existe pas");
+            player.sendMessage(ChatColor.of("#FF0000") + "Ce terrain n'existe pas");
             return false;
         }
         return true;
@@ -75,7 +76,7 @@ public class Controller{
     {
         if(!player.hasPermission(permission) && !player.isOp())
         {
-            player.sendMessage("§cVous n'avez pas la permission");
+            player.sendMessage(ChatColor.of("#FF0000") + "Vous n'avez pas la permission");
             return false;
         }
         return true;
@@ -86,7 +87,7 @@ public class Controller{
         if(!this.hasLand(landName)) return false;
         if(!value.equalsIgnoreCase("on") && !value.equalsIgnoreCase("off"))
         {
-            player.sendMessage("§c" + value + " n'est pas une valeur correct. (§aON §r| §cOFF)");
+            player.sendMessage(ChatColor.of("#FF0000") + value + " n'est pas une valeur correct. Mettez ON ou OFF");
             return false;
         }
         landModel.setLandSecurity(player.getUniqueId(), landName, landSecurity, value.equalsIgnoreCase("on"));
@@ -98,51 +99,11 @@ public class Controller{
         if(!this.hasSafeLand(landName)) return false;
         if(!value.equalsIgnoreCase("on") && !value.equalsIgnoreCase("off"))
         {
-            player.sendMessage("§c" + value + " n'est pas une valeur correct. (§aON §r| §cOFF)");
+            player.sendMessage(ChatColor.of("#FF0000") + value + " n'est pas une valeur correct. Mettez ON ou OFF");
             return false;
         }
 
         landModel.setSafeLandSecurity(landName, landSecurity, value.equalsIgnoreCase("on"));
-        return true;
-    }
-
-    protected boolean positionOnOtherLand(Location location)
-    {
-        if(plugin.getAllLand().stream().anyMatch(l -> l.isInRegion(location)))
-        {
-            player.sendMessage("§cCette zone est déjà claim");
-            return false;
-        }
-        return true;
-    }
-
-    public boolean canSetPosition1(Location position1)
-    {
-        if(!this.hasLandProgress()) return false;
-        return this.positionOnOtherLand(position1);
-    }
-
-    public boolean canSetPosition2(Location position2) {
-        if(!this.hasLandProgress()) return false;
-        Land land = plugin.getLandProgress().get(player.getUniqueId());
-        if(land.getPosition1() == null)
-        {
-            player.sendMessage("§aPremière position inexistant");
-            return false;
-        }
-        if(position2.getWorld() != land.getPosition1().getWorld())
-        {
-            player.sendMessage("§cLes deux positions n'ont pas les mêmes monde");
-            return false;
-        }
-        if(!positionOnOtherLand(position2)) return false;
-        land.setPosition2(position2);
-        land.buildLandLocation();
-        if(plugin.getAllLand().stream().anyMatch(l -> land.isInRegion(l.getMinLocation()) || land.isInRegion(l.getMaxLocation())))
-        {
-            player.sendMessage("§cIl y a déjà un claim dans votre zone");
-            return false;
-        }
         return true;
     }
 }

@@ -8,6 +8,7 @@ import org.bukkit.entity.Animals;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wither;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -38,7 +39,7 @@ public class LandProtection implements Listener {
         if(plugin.getAllLand().stream().noneMatch(c -> c.isInRegion(e.getBlock().getLocation()))) return;
         Land land = plugin.getAllLand().stream().filter(c -> c.isInRegion(e.getBlock().getLocation())).findFirst().orElse(null);
         if(land == null) return;
-        if(land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
+        if(land.getOwner() != null && land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
         if(land.getMembers().contains(e.getPlayer().getUniqueId())) return;
         if(e.getBlock().getBlockData() instanceof Ageable && land.canCrops()) return;
         e.setCancelled(true);
@@ -52,7 +53,7 @@ public class LandProtection implements Listener {
         if(plugin.getAllLand().stream().noneMatch(c -> c.isInRegion(e.getBlock().getLocation()))) return;
         Land land = plugin.getAllLand().stream().filter(c -> c.isInRegion(e.getBlock().getLocation())).findFirst().orElse(null);
         if(land == null) return;
-        if(land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
+        if(land.getOwner() != null && land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
         if(land.getMembers().contains(e.getPlayer().getUniqueId())) return;
         if(e.getBlockPlaced().getBlockData() instanceof Ageable && land.canCrops()) return;
         e.setCancelled(true);
@@ -67,11 +68,13 @@ public class LandProtection implements Listener {
         if(plugin.getAllLand().stream().noneMatch(c -> c.isInRegion(e.getClickedBlock().getLocation()))) return;
         Land land = plugin.getAllLand().stream().filter(l -> l.isInRegion(e.getClickedBlock().getLocation())).findFirst().orElse(null);
         if(land == null) return;
-        if(land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
+        if(land.getOwner() != null && land.getOwner().equals(e.getPlayer().getUniqueId()) && !land.isSafeZone()) return;
         if(land.getMembers().contains(e.getPlayer().getUniqueId())) return;
         if(e.getClickedBlock().getBlockData() instanceof Ageable && land.canCrops()) return;
         if(land.canInteract()) return;
         e.setCancelled(true);
+        e.setUseItemInHand(Event.Result.DENY);
+        e.setUseInteractedBlock(Event.Result.DENY);
         e.getPlayer().sendMessage("§cVous n'avez pas la permission");
     }
 

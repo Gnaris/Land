@@ -9,7 +9,6 @@ import java.util.UUID;
 public class Land extends Region
 {
     private Location spawnLocation;
-    private boolean isCity;
     private final boolean isSafeZone;
     private boolean canInteract = false;
     private boolean monsterCanSpawn = true;
@@ -24,20 +23,15 @@ public class Land extends Region
         this.isSafeZone = isSafeZone;
     }
 
-    public Land(UUID owner, String landName, Location minLocation, Location maxLocation, Location spawnLocation, boolean isSafeZone, boolean isCity, boolean canInteract, boolean monsterCanSpawn, boolean canHitMonster, boolean canHitAnimal, boolean canCrops) {
+    public Land(UUID owner, String landName, Location minLocation, Location maxLocation, Location spawnLocation, boolean isSafeZone, boolean canInteract, boolean monsterCanSpawn, boolean canHitMonster, boolean canHitAnimal, boolean canCrops) {
         super(owner, landName, minLocation, maxLocation);
         this.spawnLocation = spawnLocation;
-        this.isCity = isCity;
         this.isSafeZone = isSafeZone;
         this.canInteract = canInteract;
         this.monsterCanSpawn = monsterCanSpawn;
         this.canHitMonster = canHitMonster;
         this.canHitAnimal = canHitAnimal;
         this.canCrops = canCrops;
-    }
-
-    public boolean isCity() {
-        return isCity;
     }
 
     public boolean isSafeZone() {
